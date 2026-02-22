@@ -1,0 +1,23 @@
+C:\Users\luizs\Documents\Python\healthtech-mvp\sinergya-backend\seed.py:91: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  lgpd_consent_at=datetime.utcnow(),
+  ✅ Criado: admin@sinergya.com | senha: admin123 | perfil: UserRole.admin
+  ✅ Criado: ana@sinergya.com | senha: prof123 | perfil: UserRole.profissional
+  ✅ Criado: carlos@sinergya.com | senha: prof123 | perfil: UserRole.profissional
+  ✅ Criado: fernanda@sinergya.com | senha: sup123 | perfil: UserRole.supervisor
+  ✅ Criado: joao@email.com | senha: pac123 | perfil: UserRole.paciente
+  ✅ Criado: maria@email.com | senha: pac123 | perfil: UserRole.paciente
+  ✅ Criado: lucas@universidade.com | senha: acad123 | perfil: UserRole.academico
+
+✅ Seed concluído!
+
+==================================================
+USUÁRIOS DE TESTE:
+==================================================
+admin@sinergya.com     | admin123  | Admin
+ana@sinergya.com       | prof123   | Profissional
+carlos@sinergya.com    | prof123   | Profissional
+fernanda@sinergya.com  | sup123    | Supervisor
+joao@email.com         | pac123    | Paciente
+maria@email.com        | pac123    | Paciente
+lucas@universidade.com | acad123   | Acadêmico
+==================================================

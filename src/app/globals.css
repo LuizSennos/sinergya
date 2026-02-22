@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* ================================
+   DESIGN SYSTEM — SINERGYA
+   ================================ */
+@theme {
+  /* 🎨 Paleta oficial */
+  --color-sinergya-green: #4FBF9F;
+  --color-sinergya-blue: #3A7BD5;
+  --color-sinergya-turquoise: #63D2C6;
+  --color-sinergya-background: #F7F9F8;
+  --color-sinergya-dark: #0F172A;
+  --color-sinergya-muted: #64748B;
+
+  /* 🌈 Gradiente institucional */
+  --gradient-sinergya: linear-gradient(
+    135deg,
+    #4FBF9F 0%,
+    #63D2C6 50%,
+    #3A7BD5 100%
+  );
+
+  /* 🌫️ Superfícies */
+  --surface-white: #ffffff;
+  --surface-soft: #f1f5f9;
+
+  /* 🌑 Sombras */
+  --shadow-soft: 0 10px 25px -10px rgba(15, 23, 42, 0.15);
+  --shadow-card: 0 6px 18px rgba(15, 23, 42, 0.08);
+
+  /* 🔤 Tipografia */
+  --font-sans: ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+}
+
+/* ================================
+   RESET BÁSICO
+   ================================ */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* ================================
+   BODY
+   ================================ */
+body {
+  margin: 0;
+  background: var(--color-sinergya-background);
+  color: var(--color-sinergya-dark);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ================================
+   PADRÕES DE TEXTO
+   ================================ */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  color: var(--color-sinergya-dark);
+}
+
+p {
+  color: var(--color-sinergya-muted);
+  line-height: 1.6;
+}
+
+/* ================================
+   COMPONENTES BASE
+   ================================ */
+
+/* Card padrão */
+.card {
+  background: var(--surface-white);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Badge LGPD */
+.badge-lgpd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e6f7f2;
+  color: var(--color-sinergya-green);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Registro Assistencial */
+.record-assistential {
+  border-left: 4px solid var(--color-sinergya-blue);
+  background: #f0f7ff;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Observação Técnica */
+.record-technical {
+  border-left: 4px solid var(--color-sinergya-green);
+  background: #f0fdf9;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* ================================
+   SCROLL SUAVE
+   ================================ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.2);
+  border-radius: 999px;
+}

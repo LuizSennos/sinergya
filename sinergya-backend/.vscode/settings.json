@@ -1,0 +1,5 @@
+{
+  "python.defaultInterpreterPath": "./sinergya-backend/venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "terminal.integrated.cwd": "${workspaceFolder}/sinergya-backend"
+}
