@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { apiLogin } from "@/lib/api";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,15 +17,18 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Mock login para demo — trocar por fetch real depois
-      await new Promise((r) => setTimeout(r, 800));
-      if (email && password) {
-        router.push("/patient/1");
+      const data = await apiLogin(email, password);
+
+      // Redireciona por role com navegação completa
+      if (data.role === "admin") {
+        window.location.href = "/admin";
+      } else if (data.role === "paciente" || data.role === "responsavel") {
+        window.location.href = "/paciente";
       } else {
-        throw new Error("Preencha todos os campos.");
+        window.location.href = "/patient/1";
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Erro inesperado.");
+      setError(err instanceof Error ? err.message : "Email ou senha incorretos.");
     } finally {
       setLoading(false);
     }
@@ -34,16 +36,13 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-sinergya-background flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Fundo decorativo */}
       <div aria-hidden className="pointer-events-none fixed inset-0">
         <div className="absolute -top-60 -right-60 w-[700px] h-[700px] rounded-full bg-sinergya-green/8 blur-3xl" />
         <div className="absolute -bottom-60 -left-60 w-[600px] h-[600px] rounded-full bg-sinergya-blue/8 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Card */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Header escuro */}
           <div className="px-10 pt-10 pb-8 text-white" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e293b 60%, #1a3a5c 100%)" }}>
             <div className="flex justify-center mb-8">
               <Image src="/logo.png" alt="Sinergya" width={180} height={50} priority />
@@ -52,9 +51,7 @@ export default function LoginPage() {
             <p className="mt-1 text-sm text-white/50">Plataforma multiprofissional de saúde</p>
           </div>
 
-          {/* Formulário */}
           <form onSubmit={handleLogin} className="px-10 py-8 space-y-5">
-            {/* Email */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">E-mail</label>
               <div className="relative">
@@ -75,7 +72,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Senha */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">Senha</label>
               <div className="relative">
@@ -110,7 +106,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Erro */}
             {error && (
               <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -120,7 +115,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Botão */}
             <button
               type="submit"
               disabled={loading}
@@ -136,13 +130,8 @@ export default function LoginPage() {
                 </span>
               ) : "Entrar"}
             </button>
-
-            <div className="text-center">
-              <button type="button" className="text-xs text-sinergya-green hover:underline">Esqueci minha senha</button>
-            </div>
           </form>
 
-          {/* LGPD */}
           <div className="px-10 pb-8 text-center">
             <span className="text-xs text-slate-400">🔒 Dados protegidos conforme a LGPD</span>
           </div>

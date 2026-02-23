@@ -1,18 +1,21 @@
 from pydantic import BaseModel
+from uuid import UUID
 from datetime import datetime
-import uuid
+from app.models.message import MessageContext
 
 class MessageCreate(BaseModel):
-    patient_id: uuid.UUID
-    context: str
+    patient_id: UUID
+    context: MessageContext
     content: str
 
 class MessageOut(BaseModel):
-    id: uuid.UUID
-    patient_id: uuid.UUID
-    author_id: uuid.UUID
-    context: str
+    id: UUID
+    patient_id: UUID
+    author_id: UUID
+    context: MessageContext
     content: str
     created_at: datetime
+    author_name: str | None = None
+    author_role: str | None = None
 
-    model_config = {'from_attributes': True}
+    model_config = {"from_attributes": True}
