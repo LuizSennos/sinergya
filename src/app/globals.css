@@ -124,3 +124,17 @@ p {
   background: rgba(15, 23, 42, 0.2);
   border-radius: 999px;
 }
+
+
+/* ================================
+   EXCEÇÃO — PÁGINAS DARK
+   ================================ */
+.dark-page h1,
+.dark-page h2,
+.dark-page h3,
+.dark-page h4 {
+  color: #ffffff !important;
+}
+.dark-page p {
+  color: inherit !important;
+}

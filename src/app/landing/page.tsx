@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-sinergya-dark text-white overflow-hidden">
+    <main className="dark-page" style={{ minHeight: "100vh", background: "#0F172A", color: "#ffffff", overflow: "hidden" }}>
 
       <nav className="flex items-center justify-between px-10 py-6 border-b border-white/10">
         <Image src="/logo.png" alt="Sinergya" width={160} height={44} priority />
@@ -17,6 +17,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* Hero — mantido igual ao original */}
       <section className="relative px-10 pt-24 pb-32 text-center overflow-hidden">
         <div aria-hidden className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full blur-3xl opacity-20"
           style={{ background: "radial-gradient(ellipse, #4FBF9F, #3A7BD5)" }} />
@@ -38,7 +39,8 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <p className="mt-6 text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
+          {/* inline para manter o tom misterioso do hero */}
+          <p className="mt-6 text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
             Comunicação organizada entre profissionais de saúde e pacientes. Grupos assistenciais, canal técnico privado, diário do paciente e muito mais.
           </p>
 
@@ -52,17 +54,18 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-2 text-xs text-white/40">
+          <div className="mt-8 flex items-center justify-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
             <span>🔒</span>
             <span>Dados protegidos conforme a LGPD</span>
           </div>
         </div>
       </section>
 
+      {/* Features */}
       <section id="funcionalidades" className="px-10 py-24 bg-white/5">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">Tudo que sua equipe precisa</h2>
-          <p className="text-center text-white/50 mb-14">Organizado, seguro e fácil de usar</p>
+          <h2 className="text-3xl font-bold text-center mb-3">Tudo que sua equipe precisa</h2>
+          <p className="text-center mb-14 font-semibold" style={{ color: "#F5C518" }}>Organizado, seguro e fácil de usar</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -75,27 +78,33 @@ export default function LandingPage() {
             ].map((f) => (
               <div key={f.title} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition">
                 <span className="text-3xl mb-4 block">{f.icon}</span>
-                <h3 className="font-semibold text-white mb-2">{f.title}</h3>
-                <p className="text-sm text-white/50 leading-relaxed">{f.desc}</p>
+                <h3 className="font-semibold mb-2">{f.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Para quem */}
       <section id="para-quem" className="px-10 py-24">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Para quem é o Sinergya?</h2>
-          <p className="text-white/50 mb-14">Duas versões para contextos diferentes</p>
+          <h2 className="text-3xl font-bold mb-3">Para quem é o Sinergya?</h2>
+          <p className="mb-14 font-semibold" style={{ color: "#F5C518" }}>Duas versões para contextos diferentes</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-2xl p-8 text-left border border-sinergya-green/30 bg-sinergya-green/5">
               <span className="text-xs font-semibold uppercase tracking-wider text-sinergya-green mb-4 block">Versão Universitária</span>
               <h3 className="text-xl font-bold mb-3">Clínicas Escola</h3>
-              <p className="text-white/60 text-sm leading-relaxed mb-4">Para universidades com atendimento supervisionado. Acadêmicos, supervisores e pacientes organizados em um ambiente educacional seguro.</p>
-              <ul className="space-y-2 text-sm text-white/70">
+              <p className="text-sm leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.78)" }}>
+                Para universidades com atendimento supervisionado. Acadêmicos, supervisores e pacientes organizados em um ambiente educacional seguro.
+              </p>
+              <ul className="space-y-2 text-sm">
                 {["Acadêmicos + Supervisor obrigatório", "Supervisão integrada ao fluxo", "Separação lógica por instituição", "Linguagem educacional"].map(i => (
-                  <li key={i} className="flex items-center gap-2"><span className="text-sinergya-green">✓</span>{i}</li>
+                  <li key={i} className="flex items-center gap-2">
+                    <span style={{ color: "#F5C518", fontWeight: 700 }}>✓</span>
+                    <span style={{ color: "rgba(255,255,255,0.88)" }}>{i}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -103,10 +112,15 @@ export default function LandingPage() {
             <div className="rounded-2xl p-8 text-left border border-sinergya-blue/30 bg-sinergya-blue/5">
               <span className="text-xs font-semibold uppercase tracking-wider text-sinergya-blue mb-4 block">Versão Profissional</span>
               <h3 className="text-xl font-bold mb-3">Clínicas e Consultórios</h3>
-              <p className="text-white/60 text-sm leading-relaxed mb-4">Para profissionais de saúde no mercado. Equipes multiprofissionais organizadas em torno do paciente, com comunicação clara e rastreável.</p>
-              <ul className="space-y-2 text-sm text-white/70">
+              <p className="text-sm leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.78)" }}>
+                Para profissionais de saúde no mercado. Equipes multiprofissionais organizadas em torno do paciente, com comunicação clara e rastreável.
+              </p>
+              <ul className="space-y-2 text-sm">
                 {["Profissionais autônomos ou em equipe", "Supervisor opcional", "Consentimento LGPD integrado", "Auditoria completa"].map(i => (
-                  <li key={i} className="flex items-center gap-2"><span className="text-sinergya-blue">✓</span>{i}</li>
+                  <li key={i} className="flex items-center gap-2">
+                    <span style={{ color: "#F5C518", fontWeight: 700 }}>✓</span>
+                    <span style={{ color: "rgba(255,255,255,0.88)" }}>{i}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -114,18 +128,20 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CTA */}
       <section className="px-10 py-24 text-center border-t border-white/10">
         <h2 className="text-3xl font-bold mb-4">Pronto para começar?</h2>
-        <p className="text-white/50 mb-10">MVP em validação — entre em contato para acesso antecipado</p>
+        <p className="mb-10" style={{ color: "rgba(255,255,255,0.55)" }}>MVP em validação — entre em contato para acesso antecipado</p>
         <Link href="/login" className="inline-block px-10 py-4 rounded-xl text-sm font-semibold text-sinergya-dark transition-all"
           style={{ background: "linear-gradient(135deg, #4FBF9F, #3A7BD5)", boxShadow: "0 8px 30px rgba(79,191,159,0.3)" }}>
           Acessar plataforma
         </Link>
       </section>
 
+      {/* Footer */}
       <footer className="px-10 py-6 border-t border-white/10 flex items-center justify-between">
         <Image src="/logo.png" alt="Sinergya" width={100} height={28} />
-        <p className="text-xs text-white/30">© 2025 Sinergya · Dados protegidos (LGPD)</p>
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>© 2025 Sinergya · Dados protegidos (LGPD)</p>
       </footer>
     </main>
   );

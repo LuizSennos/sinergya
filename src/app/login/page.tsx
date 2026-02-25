@@ -24,9 +24,15 @@ export default function LoginPage() {
         window.location.href = "/admin";
       } else if (data.role === "paciente" || data.role === "responsavel") {
         window.location.href = "/paciente";
-      } else {
-        window.location.href = "/patient/1";
-      }
+    } else {
+  const { apiGetPatients } = await import("@/lib/api");
+  const ps = await apiGetPatients();
+  if (ps && ps.length > 0) {
+    window.location.href = `/patient/${ps[0].id}`;
+  } else {
+    window.location.href = "/sem-pacientes";
+  }
+}
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Email ou senha incorretos.");
     } finally {
