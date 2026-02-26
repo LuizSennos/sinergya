@@ -1,5 +1,5 @@
 const API_URL = typeof window !== "undefined" && window.location.hostname !== "localhost"
-  ? " https://bio-nick-slides-anyway.trycloudflare.com"
+  ? "https://are-intermediate-arbitrary-older.trycloudflare.com"
   : "http://localhost:8000";
 
 function getToken() {

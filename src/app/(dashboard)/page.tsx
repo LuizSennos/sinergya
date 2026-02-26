@@ -1,39 +1,27 @@
 "use client";
-
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { apiGetPatients } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+import { getStoredUser, apiGetPatients } from "@/lib/api";
 
-const PACIENTE_ROLES = ["paciente", "responsavel"];
-
-export default function DashboardPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
+export default function HomePage() {
   useEffect(() => {
-    if (loading) return;
-    if (!user) { router.replace("/login"); return; }
-    if (PACIENTE_ROLES.includes(user.role)) { router.replace("/paciente"); return; }
-    if (user.role === "admin") { router.replace("/admin"); return; }
-
+    const user = getStoredUser();
+    if (!user) {
+      window.location.href = "/landing";
+      return;
+    }
+    if (user.role === "admin") { window.location.href = "/admin"; return; }
+    if (user.role === "paciente" || user.role === "responsavel") { window.location.href = "/paciente"; return; }
     apiGetPatients()
-      .then((patients) => {
-        if (patients && patients.length > 0) {
-          router.replace(`/patient/${patients[0].id}`);
-        } else {
-          router.replace("/sem-pacientes");
-        }
+      .then(ps => {
+        if (ps && ps.length > 0) window.location.href = `/patient/${ps[0].id}`;
+        else window.location.href = "/sem-pacientes";
       })
-      .catch(() => router.replace("/login"));
-  }, [user, loading, router]);
+      .catch(() => { window.location.href = "/landing"; });
+  }, []);
 
   return (
-    <div className="flex items-center justify-center h-full bg-white">
-      <div className="flex flex-col items-center gap-3">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sinergya-green"></div>
-        <p className="text-slate-400 text-sm font-medium">Redirecionando...</p>
-      </div>
+    <div className="min-h-screen bg-sinergya-background flex items-center justify-center">
+      <p className="text-slate-400 text-sm">Redirecionando...</p>
     </div>
   );
 }

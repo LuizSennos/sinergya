@@ -1,18 +1,19 @@
 "use client";
-
 import { useEffect } from "react";
-import { getStoredUser } from "@/lib/api";
+import { getStoredUser, apiGetPatients } from "@/lib/api";
 
 export default function HomePage() {
   useEffect(() => {
     const user = getStoredUser();
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-    if (user.role === "admin") window.location.href = "/admin";
-    else if (user.role === "paciente" || user.role === "responsavel") window.location.href = "/paciente";
-    else window.location.href = "/patient/1";
+    if (!user) { window.location.href = "/landing"; return; }
+    if (user.role === "admin") { window.location.href = "/admin"; return; }
+    if (user.role === "paciente" || user.role === "responsavel") { window.location.href = "/paciente"; return; }
+    apiGetPatients()
+      .then(ps => {
+        if (ps && ps.length > 0) window.location.href = `/patient/${ps[0].id}`;
+        else window.location.href = "/sem-pacientes";
+      })
+      .catch(() => { window.location.href = "/landing"; });
   }, []);
 
   return (
