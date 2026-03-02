@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 function getToken() {
   if (typeof window === "undefined") return null;
@@ -134,3 +134,9 @@ export async function apiBindUserToPatient(patientId: string, userId: string) { 
 export async function apiAdminStats() { return request<any>("/admin/stats"); }
 export async function apiAdminUsers() { return request<any[]>("/users/"); }
 export async function apiAdminLogs() { return request<any[]>("/admin/audit-logs"); }
+
+export async function apiGetSignedUrl(storagePath: string) {
+  return request<{ url: string }>(
+    `/signed-url?storage_path=${encodeURIComponent(storagePath)}`
+  );
+}

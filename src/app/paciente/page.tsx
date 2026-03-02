@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { apiGetMyPatient, apiGetMessages, apiSendMessage, apiGetDiary, apiCreateDiaryEntry, apiGetTasks, apiMarkTaskDone, apiUploadFile, apiSendMessageWithAttachment } from "@/lib/api";
+import { apiGetMyPatient, apiGetMessages, apiSendMessage, apiGetDiary, apiCreateDiaryEntry, apiGetTasks, apiMarkTaskDone, apiUploadFile, apiSendMessageWithAttachment, } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 const BRAND_GRADIENT = "linear-gradient(135deg, #1e8c68 0%, #2a7fc4 100%)";
