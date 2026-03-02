@@ -10,13 +10,24 @@ export default function PerfilPage() {
   const [profile, setProfile] = useState<any>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
-  useEffect(() => {
-    if (!loading) {
-      if (!user) { logout(); return; }
-      // valida token
-      refreshUser().then(() => setDataLoading(false)).catch(logout);
+ useEffect(() => {
+  async function validate() {
+    if (loading) return;
+    if (!user) {
+      logout();
+      return;
     }
-  }, [user, loading]);
+
+    try {
+      await refreshUser();
+      setDataLoading(false);
+    } catch {
+      logout();
+    }
+  }
+
+  validate();
+}, [user, loading]);
 
   useEffect(() => {
     if (!user) return;
