@@ -1,6 +1,4 @@
-const API_URL = typeof window !== "undefined" && window.location.hostname !== "localhost"
-  ? "https://are-intermediate-arbitrary-older.trycloudflare.com"
-  : "http://localhost:8000";
+const API_URL = "http://localhost:8000";
 
 function getToken() {
   if (typeof window === "undefined") return null;
@@ -78,8 +76,51 @@ export async function apiBindPatientToUser(patientId: string, userId: string) {
   return request(`/patients/${patientId}/bind-user?user_id=${userId}`, { method: "PATCH" });
 }
 
-export async function apiGetMessages(patientId: string, context: "assistencial" | "tecnico") { return request<any[]>(`/messages/${patientId}?context=${context}`); }
-export async function apiSendMessage(patientId: string, context: "assistencial" | "tecnico", content: string) { return request("/messages/", { method: "POST", body: JSON.stringify({ patient_id: patientId, context, content }) }); }
+// ── Mensagens ── URL corrigida para /messages/{patientId}/{context}
+export async function apiGetMessages(patientId: string, context: "assistencial" | "tecnico") {
+  return request<any[]>(`/messages/${patientId}/${context}`);
+}
+export async function apiSendMessage(patientId: string, context: "assistencial" | "tecnico", content: string) {
+  return request("/messages/", { method: "POST", body: JSON.stringify({ patient_id: patientId, context, content: content || null }) });
+}
+export async function apiUploadFile(file: File, patientId: string, group: string) {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("patient_id", patientId);
+  formData.append("group", group);
+  const res = await fetch(`${API_URL}/upload/`, {
+    method: "POST",
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    // ⚠️ SEM "Content-Type" aqui — o browser define automaticamente com o boundary
+    body: formData,
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Erro no upload." }));
+    throw new Error(error.detail || "Erro no upload.");
+  }
+  return res.json();
+}
+export async function apiSendMessageWithAttachment(
+  patientId: string,
+  context: "assistencial" | "tecnico",
+  content: string,
+  attachment: { url: string; attachment_type: string; attachment_name: string; attachment_size: number; attachment_mime: string; }
+) {
+  return request("/messages/", {
+    method: "POST",
+    body: JSON.stringify({
+      patient_id:      patientId,
+      context,
+      content:         content || null,
+      attachment_url:  attachment.url,
+      attachment_type: attachment.attachment_type,
+      attachment_name: attachment.attachment_name,
+      attachment_size: attachment.attachment_size,
+      attachment_mime: attachment.attachment_mime,
+    }),
+  });
+}
 
 export async function apiGetDiary(patientId: string) { return request<any[]>(`/diary/${patientId}`); }
 export async function apiCreateDiaryEntry(patientId: string, content: string) { return request("/diary/", { method: "POST", body: JSON.stringify({ patient_id: patientId, content }) }); }

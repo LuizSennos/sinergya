@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings
-from sqlalchemy.engine import URL
 
 class Settings(BaseSettings):
     APP_NAME: str = "Sinergya"
@@ -13,6 +12,11 @@ class Settings(BaseSettings):
     DB_HOST: str = "127.0.0.1"
     DB_PORT: int = 5432
     DB_NAME: str = "sinergya"
+
+    # Supabase Storage
+    SUPABASE_URL: str
+    SUPABASE_SERVICE_KEY: str
+    STORAGE_BUCKET: str = "sinergya-media"
 
     @property
     def DATABASE_URL(self) -> str:

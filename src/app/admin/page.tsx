@@ -13,9 +13,12 @@ const roleLabel: Record<string, string> = {
   supervisor: "Supervisor", paciente: "Paciente", responsavel: "Responsável"
 };
 const roleColor: Record<string, string> = {
-  admin: "bg-red-100 text-red-700", profissional: "bg-blue-100 text-blue-700",
-  academico: "bg-purple-100 text-purple-700", supervisor: "bg-amber-100 text-amber-700",
-  paciente: "bg-green-100 text-green-700", responsavel: "bg-slate-100 text-slate-600",
+  admin: "bg-red-50 text-red-600",
+  profissional: "bg-blue-50 text-blue-600",
+  academico: "bg-purple-50 text-purple-600",
+  supervisor: "bg-amber-50 text-amber-600",
+  paciente: "bg-emerald-50 text-emerald-600",
+  responsavel: "bg-slate-100 text-slate-500",
 };
 
 function formatDate(iso: string) {
@@ -104,7 +107,7 @@ export default function AdminPage() {
   }
 
   if (loading || !user || user.role !== "admin") return (
-    <div className="min-h-screen bg-sinergya-background flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7fbf9" }}>
       <p className="text-slate-400 text-sm">Verificando acesso...</p>
     </div>
   );
@@ -112,85 +115,166 @@ export default function AdminPage() {
   const pacientes = users.filter(u => ["paciente", "responsavel"].includes(u.role));
 
   return (
-    <main className="min-h-screen bg-sinergya-background">
-      {/* Header */}
-      <header className="bg-sinergya-dark text-white px-4 md:px-8 py-4 flex items-center justify-between">
-        <Image src="/logo.png" alt="Sinergya" width={140} height={40} />
-        <div className="flex items-center gap-4">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium">{user.name}</p>
-            <p className="text-xs text-white/50">Administrador</p>
+    <main className="min-h-screen" style={{ background: "radial-gradient(ellipse at 60% 0%, rgba(30,140,104,0.07) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(42,127,196,0.06) 0%, transparent 40%), #f7fbf9" }}>
+
+      {/* ── HEADER ── */}
+      <header
+        className="px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-30"
+        style={{
+          background: "rgba(247,251,249,0.92)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid rgba(30,140,104,0.1)",
+        }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Sinergya" width={32} height={32} priority
+            style={{ filter: "drop-shadow(0 2px 6px rgba(30,140,104,0.2))" }} />
+          <span className="text-base font-bold" style={{ color: "#1a3d2b" }}>Sinergya</span>
+          <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+            style={{ background: "rgba(30,140,104,0.1)", color: "#1e8c68" }}>Admin</span>
+        </div>
+
+        {/* Usuário + logout */}
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: "rgba(30,140,104,0.15)", color: "#1e8c68" }}>
+              {user.name?.[0]?.toUpperCase() ?? "A"}
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold text-slate-700 leading-none">{user.name}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Administrador</p>
+            </div>
           </div>
-          <button onClick={logout} className="text-white/40 hover:text-white transition" title="Sair">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <button onClick={logout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
             </svg>
+            Sair
           </button>
         </div>
       </header>
 
-      <div className="px-4 md:px-8 py-4 md:py-6 max-w-6xl mx-auto">
-        {/* Título + botões */}
-        <div className="mb-4 md:mb-6">
-          <div className="flex items-center justify-between mb-3 md:mb-0">
-            <h1 className="text-xl md:text-2xl font-bold text-sinergya-dark">Painel Administrativo</h1>
+      <div className="px-4 md:px-8 py-6 max-w-6xl mx-auto">
+
+        {/* ── TÍTULO + AÇÕES ── */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl md:text-2xl font-black text-slate-800">Painel Administrativo</h1>
+              <p className="text-xs text-slate-400 mt-0.5">Gerencie usuários, pacientes e visualize métricas</p>
+            </div>
             {/* Mobile: botão + */}
-            <button onClick={() => setShowActions(!showActions)} className="md:hidden w-9 h-9 rounded-xl bg-sinergya-green text-white flex items-center justify-center text-xl font-light shadow">
+            <button onClick={() => setShowActions(!showActions)}
+              className="md:hidden w-9 h-9 rounded-xl text-white flex items-center justify-center text-xl font-light shadow-lg"
+              style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)" }}>
               {showActions ? "×" : "+"}
             </button>
           </div>
+
           {/* Desktop: botões inline */}
-          <div className="hidden md:flex gap-2 flex-wrap mt-2">
-            <button onClick={() => setShowNewUser(true)} className="px-4 py-2 rounded-xl text-sm font-semibold border border-sinergya-blue text-sinergya-blue hover:bg-sinergya-blue/5 transition">+ Novo usuário</button>
-            <button onClick={() => setShowNewPatient(true)} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #4FBF9F, #3A7BD5)" }}>+ Novo paciente</button>
-            <button onClick={() => setShowBindUser(true)} className="px-4 py-2 rounded-xl text-sm font-semibold border border-sinergya-green text-sinergya-green hover:bg-sinergya-green/5 transition">Vincular usuário ↔ paciente</button>
+          <div className="hidden md:flex gap-2 flex-wrap mt-4">
+            <button onClick={() => setShowNewUser(true)}
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md"
+              style={{ background: "white", border: "1.5px solid rgba(42,127,196,0.3)", color: "#2a7fc4" }}>
+              + Novo usuário
+            </button>
+            <button onClick={() => setShowNewPatient(true)}
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02] hover:shadow-lg"
+              style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", boxShadow: "0 4px 14px rgba(30,140,104,0.25)" }}>
+              + Novo paciente
+            </button>
+            <button onClick={() => setShowBindUser(true)}
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md"
+              style={{ background: "white", border: "1.5px solid rgba(30,140,104,0.3)", color: "#1e8c68" }}>
+              Vincular usuário ↔ paciente
+            </button>
           </div>
-          {/* Mobile: botões expandíveis */}
+
+          {/* Mobile: expandível */}
           {showActions && (
-            <div className="md:hidden flex flex-col gap-2 mt-2">
-              <button onClick={() => { setShowNewUser(true); setShowActions(false); }} className="w-full px-4 py-3 rounded-xl text-sm font-semibold border border-sinergya-blue text-sinergya-blue bg-white">+ Novo usuário</button>
-              <button onClick={() => { setShowNewPatient(true); setShowActions(false); }} className="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #4FBF9F, #3A7BD5)" }}>+ Novo paciente</button>
-              <button onClick={() => { setShowBindUser(true); setShowActions(false); }} className="w-full px-4 py-3 rounded-xl text-sm font-semibold border border-sinergya-green text-sinergya-green bg-white">Vincular usuário ↔ paciente</button>
+            <div className="md:hidden flex flex-col gap-2 mt-3">
+              <button onClick={() => { setShowNewUser(true); setShowActions(false); }}
+                className="w-full px-4 py-3 rounded-xl text-sm font-semibold bg-white"
+                style={{ border: "1.5px solid rgba(42,127,196,0.3)", color: "#2a7fc4" }}>
+                + Novo usuário
+              </button>
+              <button onClick={() => { setShowNewPatient(true); setShowActions(false); }}
+                className="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)" }}>
+                + Novo paciente
+              </button>
+              <button onClick={() => { setShowBindUser(true); setShowActions(false); }}
+                className="w-full px-4 py-3 rounded-xl text-sm font-semibold bg-white"
+                style={{ border: "1.5px solid rgba(30,140,104,0.3)", color: "#1e8c68" }}>
+                Vincular usuário ↔ paciente
+              </button>
             </div>
           )}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 border-b border-slate-200 mb-4 md:mb-6 bg-white rounded-t-xl px-2 md:px-4 overflow-x-auto">
-          {([["stats","Indicadores"],["users","Usuários"],["patients","Pacientes"],["logs","Auditoria"]] as [AdminTab,string][]).map(([key,label]) => (
-            <button key={key} onClick={() => setActiveTab(key as AdminTab)}
-              className={`px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab===key?"border-sinergya-green text-sinergya-green":"border-transparent text-slate-500 hover:text-slate-700"}`}>
+        {/* ── TABS ── */}
+        <div className="flex gap-0.5 mb-6 p-1 rounded-2xl" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(30,140,104,0.1)" }}>
+          {([
+            ["stats", "📊 Indicadores"],
+            ["users", "👥 Usuários"],
+            ["patients", "🩺 Pacientes"],
+            ["logs", "📋 Auditoria"],
+          ] as [AdminTab, string][]).map(([key, label]) => (
+            <button key={key} onClick={() => setActiveTab(key)}
+              className="flex-1 px-3 py-2 text-xs md:text-sm font-semibold rounded-xl transition-all duration-200 whitespace-nowrap"
+              style={activeTab === key ? {
+                background: "white",
+                color: "#1e8c68",
+                boxShadow: "0 2px 8px rgba(30,140,104,0.12)",
+              } : {
+                color: "#94a3b8",
+              }}>
               {label}
             </button>
           ))}
         </div>
 
-        {dataLoading && <p className="text-slate-400 text-sm py-8 text-center">Carregando...</p>}
+        {dataLoading && (
+          <div className="flex items-center justify-center py-16">
+            <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#1e8c68", borderTopColor: "transparent" }} />
+          </div>
+        )}
 
-        {/* Stats */}
+        {/* ── STATS ── */}
         {!dataLoading && activeTab === "stats" && stats && (
-          <div className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Usuários ativos", value: stats.active_users, color: "text-sinergya-green" },
-                { label: "Total usuários", value: stats.total_users, color: "text-sinergya-blue" },
-                { label: "Pacientes", value: stats.total_patients, color: "text-amber-500" },
-                { label: "Mensagens", value: stats.total_messages, color: "text-purple-500" },
+                { label: "Usuários ativos", value: stats.active_users, color: "#1e8c68", bg: "rgba(30,140,104,0.08)", icon: "✅" },
+                { label: "Total usuários", value: stats.total_users, color: "#2a7fc4", bg: "rgba(42,127,196,0.08)", icon: "👥" },
+                { label: "Pacientes", value: stats.total_patients, color: "#c9a227", bg: "rgba(201,162,39,0.08)", icon: "🩺" },
+                { label: "Mensagens", value: stats.total_messages, color: "#7c3aed", bg: "rgba(124,58,237,0.08)", icon: "💬" },
               ].map(s => (
-                <div key={s.label} className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100">
-                  <p className="text-xs text-slate-400 mb-1">{s.label}</p>
-                  <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
+                <div key={s.label} className="rounded-2xl p-5 bg-white border border-slate-100"
+                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs text-slate-400">{s.label}</p>
+                    <span className="text-base">{s.icon}</span>
+                  </div>
+                  <p className="text-3xl font-black" style={{ color: s.color }}>{s.value}</p>
                 </div>
               ))}
             </div>
-            <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100">
-              <h3 className="text-sm font-semibold text-slate-700 mb-4">Usuários por perfil</h3>
+
+            <div className="bg-white rounded-2xl p-6 border border-slate-100" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+              <h3 className="text-sm font-bold text-slate-700 mb-4">Usuários por perfil</h3>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                 {Object.entries(stats.users_by_role ?? {}).map(([role, count]: any) => (
-                  <div key={role} className="text-center">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-1 ${roleColor[role]??"bg-slate-100 text-slate-600"}`}>{roleLabel[role]??role}</span>
-                    <p className="text-lg font-bold text-sinergya-dark">{count}</p>
+                  <div key={role} className="text-center p-3 rounded-xl" style={{ background: "#f8fafc" }}>
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mb-2 ${roleColor[role] ?? "bg-slate-100 text-slate-600"}`}>
+                      {roleLabel[role] ?? role}
+                    </span>
+                    <p className="text-xl font-black text-slate-800">{count}</p>
                   </div>
                 ))}
               </div>
@@ -198,27 +282,50 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Users — tabela no desktop, cards no mobile */}
+        {/* ── USERS ── */}
         {!dataLoading && activeTab === "users" && (
           <>
             {/* Desktop */}
-            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="hidden md:block bg-white rounded-2xl border border-slate-100 overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>{["Nome","Email","Perfil","LGPD","Cadastro","Ações"].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>)}</tr>
+                <thead style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                  <tr>
+                    {["Nome", "Email", "Perfil", "LGPD", "Cadastro", "Ações"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {users.length===0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400 text-xs">Nenhum usuário.</td></tr>}
-                  {users.map((u:any) => (
-                    <tr key={u.id} className={`transition ${u.is_active ? "hover:bg-slate-50" : "bg-slate-50 opacity-60"}`}>
-                      <td className="px-4 py-3"><div className="flex items-center gap-2"><div className={`w-2 h-2 rounded-full flex-shrink-0 ${u.is_active ? "bg-sinergya-green" : "bg-slate-300"}`}/><span className="font-medium text-sinergya-dark">{u.name}</span></div></td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">{u.email}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleColor[u.role]??"bg-slate-100 text-slate-600"}`}>{roleLabel[u.role]??u.role}</span></td>
-                      <td className="px-4 py-3"><span className={`text-xs ${u.lgpd_consent?"text-sinergya-green":"text-red-500"}`}>{u.lgpd_consent?"✓ Sim":"✗ Não"}</span></td>
+                <tbody className="divide-y divide-slate-50">
+                  {users.length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-300 text-xs">Nenhum usuário cadastrado.</td></tr>
+                  )}
+                  {users.map((u: any) => (
+                    <tr key={u.id} className={`transition-colors ${u.is_active ? "hover:bg-slate-50/50" : "opacity-50"}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                            style={{ background: u.is_active ? "rgba(30,140,104,0.1)" : "#f1f5f9", color: u.is_active ? "#1e8c68" : "#94a3b8" }}>
+                            {u.name?.[0]?.toUpperCase()}
+                          </div>
+                          <span className="font-semibold text-slate-800 text-sm">{u.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400 text-xs">{u.email}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleColor[u.role] ?? "bg-slate-100 text-slate-500"}`}>
+                          {roleLabel[u.role] ?? u.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-medium ${u.lgpd_consent ? "text-emerald-500" : "text-red-400"}`}>
+                          {u.lgpd_consent ? "✓ Sim" : "✗ Não"}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-slate-400 text-xs">{formatDate(u.created_at)}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => handleToggleUser(u.id, u.is_active)} disabled={togglingId === u.id || u.id === user.user_id}
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition disabled:opacity-40 ${u.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-600 hover:bg-green-100"}`}>
+                        <button onClick={() => handleToggleUser(u.id, u.is_active)}
+                          disabled={togglingId === u.id || u.id === user.user_id}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 ${u.is_active ? "bg-red-50 text-red-500 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}>
                           {togglingId === u.id ? "..." : u.is_active ? "Desativar" : "Ativar"}
                         </button>
                       </td>
@@ -227,27 +334,37 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
-            {/* Mobile */}
+
+            {/* Mobile cards */}
             <div className="md:hidden space-y-3">
-              {users.map((u:any) => (
-                <div key={u.id} className={`bg-white rounded-2xl p-4 border border-slate-100 shadow-sm ${!u.is_active ? "opacity-60" : ""}`}>
+              {users.map((u: any) => (
+                <div key={u.id} className={`bg-white rounded-2xl p-4 border border-slate-100 ${!u.is_active ? "opacity-50" : ""}`}
+                  style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${u.is_active ? "bg-sinergya-green" : "bg-slate-300"}`}/>
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                        style={{ background: "rgba(30,140,104,0.1)", color: "#1e8c68" }}>
+                        {u.name?.[0]?.toUpperCase()}
+                      </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-sinergya-dark text-sm truncate">{u.name}</p>
+                        <p className="font-semibold text-slate-800 text-sm truncate">{u.name}</p>
                         <p className="text-xs text-slate-400 truncate">{u.email}</p>
                       </div>
                     </div>
-                    <button onClick={() => handleToggleUser(u.id, u.is_active)} disabled={togglingId === u.id || u.id === user.user_id}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold flex-shrink-0 disabled:opacity-40 ${u.is_active ? "bg-red-50 text-red-600" : "bg-green-50 text-green-600"}`}>
+                    <button onClick={() => handleToggleUser(u.id, u.is_active)}
+                      disabled={togglingId === u.id || u.id === user.user_id}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold flex-shrink-0 disabled:opacity-30 ${u.is_active ? "bg-red-50 text-red-500" : "bg-emerald-50 text-emerald-600"}`}>
                       {togglingId === u.id ? "..." : u.is_active ? "Desativar" : "Ativar"}
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleColor[u.role]??"bg-slate-100 text-slate-600"}`}>{roleLabel[u.role]??u.role}</span>
-                    <span className={`text-xs ${u.lgpd_consent?"text-sinergya-green":"text-red-500"}`}>{u.lgpd_consent?"✓ LGPD":"✗ LGPD"}</span>
-                    <span className="text-xs text-slate-400 ml-auto">{formatDate(u.created_at)}</span>
+                  <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleColor[u.role] ?? "bg-slate-100 text-slate-500"}`}>
+                      {roleLabel[u.role] ?? u.role}
+                    </span>
+                    <span className={`text-xs font-medium ${u.lgpd_consent ? "text-emerald-500" : "text-red-400"}`}>
+                      {u.lgpd_consent ? "✓ LGPD" : "✗ LGPD"}
+                    </span>
+                    <span className="text-xs text-slate-300 ml-auto">{formatDate(u.created_at)}</span>
                   </div>
                 </div>
               ))}
@@ -255,26 +372,54 @@ export default function AdminPage() {
           </>
         )}
 
-        {/* Patients — tabela no desktop, cards no mobile */}
+        {/* ── PATIENTS ── */}
         {!dataLoading && activeTab === "patients" && (
           <>
-            {/* Desktop */}
-            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="hidden md:block bg-white rounded-2xl border border-slate-100 overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>{["Nome","Especialidades","Menor","Usuário vinculado","Status","Cadastro"].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>)}</tr>
+                <thead style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                  <tr>
+                    {["Nome", "Especialidades", "Menor", "Usuário vinculado", "Status", "Cadastro"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {patients.length===0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400 text-xs">Nenhum paciente.</td></tr>}
-                  {patients.map((p:any) => {
+                <tbody className="divide-y divide-slate-50">
+                  {patients.length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-300 text-xs">Nenhum paciente cadastrado.</td></tr>
+                  )}
+                  {patients.map((p: any) => {
                     const linkedUser = users.find(u => u.id === p.user_id);
                     return (
-                      <tr key={p.id} className="hover:bg-slate-50 transition">
-                        <td className="px-4 py-3 font-medium text-sinergya-dark">{p.name}</td>
-                        <td className="px-4 py-3 text-slate-500 text-xs">{p.specialties||"—"}</td>
-                        <td className="px-4 py-3">{p.is_minor?<span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Sim</span>:<span className="text-xs text-slate-400">Não</span>}</td>
-                        <td className="px-4 py-3">{linkedUser?<span className="text-xs text-sinergya-green font-medium">✓ {linkedUser.name}</span>:<button onClick={() => { setBindPatientId(p.id); setShowBindUser(true); }} className="text-xs text-amber-500 hover:text-amber-700 underline">Vincular usuário</button>}</td>
-                        <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${p.is_active?"bg-green-100 text-green-700":"bg-red-100 text-red-600"}`}>{p.is_active?"Ativo":"Inativo"}</span></td>
+                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                              style={{ background: "rgba(201,162,39,0.1)", color: "#c9a227" }}>
+                              {p.name?.[0]?.toUpperCase()}
+                            </div>
+                            <span className="font-semibold text-slate-800">{p.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400 text-xs">{p.specialties || "—"}</td>
+                        <td className="px-4 py-3">
+                          {p.is_minor
+                            ? <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">Sim</span>
+                            : <span className="text-xs text-slate-300">Não</span>}
+                        </td>
+                        <td className="px-4 py-3">
+                          {linkedUser
+                            ? <span className="text-xs font-semibold text-emerald-500">✓ {linkedUser.name}</span>
+                            : <button onClick={() => { setBindPatientId(p.id); setShowBindUser(true); }}
+                                className="text-xs font-semibold text-amber-500 hover:text-amber-600 underline underline-offset-2">
+                                Vincular
+                              </button>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${p.is_active ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                            {p.is_active ? "Ativo" : "Inativo"}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-slate-400 text-xs">{formatDate(p.created_at)}</td>
                       </tr>
                     );
@@ -282,23 +427,27 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
-            {/* Mobile */}
+
             <div className="md:hidden space-y-3">
-              {patients.map((p:any) => {
+              {patients.map((p: any) => {
                 const linkedUser = users.find(u => u.id === p.user_id);
                 return (
-                  <div key={p.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                  <div key={p.id} className="bg-white rounded-2xl p-4 border border-slate-100" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-medium text-sinergya-dark text-sm">{p.name}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{p.specialties||"—"}</p>
+                        <p className="font-semibold text-slate-800 text-sm">{p.name}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{p.specialties || "—"}</p>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${p.is_active?"bg-green-100 text-green-700":"bg-red-100 text-red-600"}`}>{p.is_active?"Ativo":"Inativo"}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${p.is_active ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                        {p.is_active ? "Ativo" : "Inativo"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      {p.is_minor && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Menor</span>}
-                      {linkedUser?<span className="text-xs text-sinergya-green font-medium">✓ {linkedUser.name}</span>:<button onClick={() => { setBindPatientId(p.id); setShowBindUser(true); }} className="text-xs text-amber-500 underline">Vincular usuário</button>}
-                      <span className="text-xs text-slate-400 ml-auto">{formatDate(p.created_at)}</span>
+                      {p.is_minor && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">Menor</span>}
+                      {linkedUser
+                        ? <span className="text-xs font-semibold text-emerald-500">✓ {linkedUser.name}</span>
+                        : <button onClick={() => { setBindPatientId(p.id); setShowBindUser(true); }} className="text-xs font-semibold text-amber-500 underline">Vincular</button>}
+                      <span className="text-xs text-slate-300 ml-auto">{formatDate(p.created_at)}</span>
                     </div>
                   </div>
                 );
@@ -307,39 +456,50 @@ export default function AdminPage() {
           </>
         )}
 
-        {/* Logs — tabela no desktop, cards no mobile */}
+        {/* ── LOGS ── */}
         {activeTab === "logs" && (
           <>
-            {/* Desktop */}
-            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="hidden md:block bg-white rounded-2xl border border-slate-100 overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>{["Ação","Perfil","Entidade","Detalhe","Data"].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>)}</tr>
+                <thead style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                  <tr>
+                    {["Ação", "Perfil", "Entidade", "Detalhe", "Data"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {logs.length===0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-xs">Nenhum log ainda.</td></tr>}
-                  {logs.map((l:any) => (
-                    <tr key={l.id} className="hover:bg-slate-50 transition">
-                      <td className="px-4 py-3 font-mono text-xs text-sinergya-dark">{l.action}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleColor[l.user_role]??"bg-slate-100 text-slate-600"}`}>{roleLabel[l.user_role]??l.user_role}</span></td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">{l.entity}</td>
+                <tbody className="divide-y divide-slate-50">
+                  {logs.length === 0 && (
+                    <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-300 text-xs">Nenhum log registrado.</td></tr>
+                  )}
+                  {logs.map((l: any) => (
+                    <tr key={l.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs text-slate-700 font-semibold">{l.action}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleColor[l.user_role] ?? "bg-slate-100 text-slate-500"}`}>
+                          {roleLabel[l.user_role] ?? l.user_role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400 text-xs">{l.entity}</td>
                       <td className="px-4 py-3 text-slate-400 text-xs truncate max-w-xs">{l.detail}</td>
-                      <td className="px-4 py-3 text-slate-400 text-xs">{formatDate(l.created_at)}</td>
+                      <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{formatDate(l.created_at)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {/* Mobile */}
+
             <div className="md:hidden space-y-3">
-              {logs.map((l:any) => (
-                <div key={l.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+              {logs.map((l: any) => (
+                <div key={l.id} className="bg-white rounded-2xl p-4 border border-slate-100" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-xs text-sinergya-dark">{l.action}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleColor[l.user_role]??"bg-slate-100 text-slate-600"}`}>{roleLabel[l.user_role]??l.user_role}</span>
-                    <span className="text-xs text-slate-400 ml-auto">{formatDate(l.created_at)}</span>
+                    <span className="font-mono text-xs font-semibold text-slate-700">{l.action}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleColor[l.user_role] ?? "bg-slate-100 text-slate-500"}`}>
+                      {roleLabel[l.user_role] ?? l.user_role}
+                    </span>
+                    <span className="text-xs text-slate-300 ml-auto">{formatDate(l.created_at)}</span>
                   </div>
-                  <p className="text-xs text-slate-500 truncate">{l.detail}</p>
+                  <p className="text-xs text-slate-400 truncate">{l.detail}</p>
                 </div>
               ))}
             </div>
@@ -347,68 +507,117 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* Modal novo paciente */}
+      {/* ── MODAL NOVO PACIENTE ── */}
       {showNewPatient && (
-        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white rounded-t-3xl md:rounded-2xl shadow-2xl w-full md:max-w-md p-6">
-            <h2 className="text-lg font-bold text-sinergya-dark mb-4">Novo Paciente</h2>
-            <div className="space-y-3">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
+          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}
+          onClick={() => setShowNewPatient(false)}>
+          <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-md p-6 shadow-2xl"
+            onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)" }}>
+                <span className="text-white text-sm">🩺</span>
+              </div>
+              <h2 className="text-lg font-black text-slate-800">Novo Paciente</h2>
+            </div>
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Nome completo *</label>
-                <input value={newPatient.name} onChange={e=>setNewPatient(p=>({...p,name:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-sinergya-green/30" placeholder="Ex: João da Silva"/>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Nome completo *</label>
+                <input value={newPatient.name} onChange={e => setNewPatient(p => ({ ...p, name: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition"
+                  style={{ borderColor: "#e2e8f0", background: "#f8fafc" }}
+                  onFocus={e => { e.currentTarget.style.borderColor = "#1e8c68"; e.currentTarget.style.background = "#fff"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(30,140,104,0.08)"; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; e.currentTarget.style.boxShadow = "none"; }}
+                  placeholder="Ex: João da Silva" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Especialidades</label>
-                <input value={newPatient.specialties} onChange={e=>setNewPatient(p=>({...p,specialties:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-sinergya-green/30" placeholder="Ex: Psicologia • Fonoaudiologia"/>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Especialidades</label>
+                <input value={newPatient.specialties} onChange={e => setNewPatient(p => ({ ...p, specialties: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition"
+                  style={{ borderColor: "#e2e8f0", background: "#f8fafc" }}
+                  onFocus={e => { e.currentTarget.style.borderColor = "#1e8c68"; e.currentTarget.style.background = "#fff"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(30,140,104,0.08)"; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; e.currentTarget.style.boxShadow = "none"; }}
+                  placeholder="Ex: Psicologia • Fonoaudiologia" />
               </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={newPatient.is_minor} onChange={e=>setNewPatient(p=>({...p,is_minor:e.target.checked}))} className="w-4 h-4 rounded accent-sinergya-green"/>
+              <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <input type="checkbox" checked={newPatient.is_minor} onChange={e => setNewPatient(p => ({ ...p, is_minor: e.target.checked }))}
+                  className="w-4 h-4 rounded" style={{ accentColor: "#1e8c68" }} />
                 <span className="text-sm text-slate-700">Paciente menor de idade</span>
               </label>
             </div>
             <div className="flex gap-2 mt-6">
-              <button onClick={()=>setShowNewPatient(false)} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium border border-slate-200 text-slate-600">Cancelar</button>
-              <button onClick={handleCreatePatient} disabled={savingPatient||!newPatient.name.trim()} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50" style={{background:"linear-gradient(135deg, #4FBF9F, #3A7BD5)"}}>
-                {savingPatient?"Salvando...":"Criar paciente"}
+              <button onClick={() => setShowNewPatient(false)}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-slate-500 border border-slate-200 hover:bg-slate-50 transition-colors">
+                Cancelar
+              </button>
+              <button onClick={handleCreatePatient} disabled={savingPatient || !newPatient.name.trim()}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-all hover:scale-[1.01]"
+                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", boxShadow: "0 4px 14px rgba(30,140,104,0.3)" }}>
+                {savingPatient ? "Salvando..." : "Criar paciente"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal vincular */}
+      {/* ── MODAL VINCULAR ── */}
       {showBindUser && (
-        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white rounded-t-3xl md:rounded-2xl shadow-2xl w-full md:max-w-md p-6">
-            <h2 className="text-lg font-bold text-sinergya-dark mb-1">Vincular Usuário ao Paciente</h2>
-            <p className="text-xs text-slate-400 mb-4">Permite que o paciente acesse o próprio registro clínico ao fazer login.</p>
-            <div className="space-y-3">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
+          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}
+          onClick={() => setShowBindUser(false)}>
+          <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-md p-6 shadow-2xl"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+                style={{ background: "rgba(30,140,104,0.1)" }}>
+                <span className="text-lg">🔗</span>
+              </div>
+              <h2 className="text-lg font-black text-slate-800">Vincular Usuário ao Paciente</h2>
+            </div>
+            <p className="text-xs text-slate-400 mb-5 ml-12">Permite que o paciente acesse o próprio registro clínico ao fazer login.</p>
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Registro de paciente</label>
-                <select value={bindPatientId} onChange={e=>setBindPatientId(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none bg-white">
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Paciente</label>
+                <select value={bindPatientId} onChange={e => setBindPatientId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none bg-white"
+                  style={{ borderColor: "#e2e8f0" }}>
                   <option value="">Selecionar paciente...</option>
-                  {patients.map((p:any)=><option key={p.id} value={p.id}>{p.name}{p.user_id?" ✓ já vinculado":""}</option>)}
+                  {patients.map((p: any) => <option key={p.id} value={p.id}>{p.name}{p.user_id ? " ✓ vinculado" : ""}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Usuário (paciente ou responsável)</label>
-                <select value={bindUserId} onChange={e=>setBindUserId(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none bg-white">
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Usuário</label>
+                <select value={bindUserId} onChange={e => setBindUserId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none bg-white"
+                  style={{ borderColor: "#e2e8f0" }}>
                   <option value="">Selecionar usuário...</option>
-                  {pacientes.map((u:any)=><option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
+                  {pacientes.map((u: any) => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
                 </select>
               </div>
             </div>
             <div className="flex gap-2 mt-6">
-              <button onClick={()=>{setShowBindUser(false);setBindPatientId("");setBindUserId("");}} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium border border-slate-200 text-slate-600">Cancelar</button>
-              <button onClick={handleBindUser} disabled={savingBind||!bindPatientId||!bindUserId} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50" style={{background:"linear-gradient(135deg, #4FBF9F, #3A7BD5)"}}>
-                {savingBind?"Vinculando...":"Vincular"}
+              <button onClick={() => { setShowBindUser(false); setBindPatientId(""); setBindUserId(""); }}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-slate-500 border border-slate-200 hover:bg-slate-50 transition-colors">
+                Cancelar
+              </button>
+              <button onClick={handleBindUser} disabled={savingBind || !bindPatientId || !bindUserId}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-all hover:scale-[1.01]"
+                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", boxShadow: "0 4px 14px rgba(30,140,104,0.3)" }}>
+                {savingBind ? "Vinculando..." : "Vincular"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {showNewUser && <NewUserModal onClose={() => setShowNewUser(false)} onCreated={async () => { setShowNewUser(false); await reload(); setActiveTab("users"); }} />}
+      {showNewUser && (
+        <NewUserModal
+          onClose={() => setShowNewUser(false)}
+          onCreated={async () => { setShowNewUser(false); await reload(); setActiveTab("users"); }}
+        />
+      )}
     </main>
   );
 }
