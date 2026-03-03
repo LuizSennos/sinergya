@@ -43,6 +43,10 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
     (p.specialties?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
+  // Só mostra loading se não tiver nada ainda (primeiro carregamento)
+  // Se já tem pacientes, mantém a lista visível enquanto recarrega — sem flash
+  const showSkeleton = patientsLoading && patients.length === 0;
+
   function navigate(path: string) {
     router.push(path);
     setModalOpen(false);
@@ -94,21 +98,19 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
       >
         {/* Logo */}
         <div className="px-5 py-4 flex items-center justify-center gap-2.5 border-b border-[#E6EEF8]">
-       <Image
-                      src="/logo.png"
-                      alt="Sinergya"
-                      width={36}
-                      height={36}
-                      priority
-                      style={{ filter: "drop-shadow(0 2px 8px rgba(30,140,104,0.18))" }}
-                    />
-                    <span className="text-lg font-bold tracking-tight" style={{ color: "#1a3d2b" }}>
-                      Sinergya
-                    </span>
+          <Image
+            src="/logo.png"
+            alt="Sinergya"
+            width={36}
+            height={36}
+            priority
+            style={{ filter: "drop-shadow(0 2px 8px rgba(30,140,104,0.18))" }}
+          />
+          <span className="text-lg font-bold tracking-tight" style={{ color: "#1a3d2b" }}>
+            Sinergya
+          </span>
         </div>
 
-      
-     
         {/* Busca */}
         <div className="px-4 pt-4 pb-2">
           <div className="relative">
@@ -116,7 +118,9 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
               viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <input value={search} onChange={e => setSearch(e.target.value)}
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
               placeholder="Buscar paciente..."
               className="w-full bg-white text-slate-700 text-sm placeholder:text-slate-500 pl-9 pr-3 py-2.5 rounded-xl outline-none transition border border-[#E6EEF8] focus:ring-2 focus:ring-[#1e8c68]/30"
             />
@@ -126,26 +130,56 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
         {/* Label */}
         <div className="px-6 py-3 text-xs font-semibold tracking-wider text-slate-400 flex items-center justify-between">
           <span>PACIENTES</span>
-          {patients.length > 0 && <span className="text-slate-700">{filtered.length}/{patients.length}</span>}
+          <div className="flex items-center gap-2">
+            {/* Indicador sutil de refresh — sem sumir a lista */}
+            {patientsLoading && patients.length > 0 && (
+              <svg className="animate-spin text-slate-300" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+            )}
+            {patients.length > 0 && (
+              <span className="text-slate-700">{filtered.length}/{patients.length}</span>
+            )}
+          </div>
         </div>
 
         {/* Lista */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto pb-4">
-          {patientsLoading && <div className="px-4 py-3 text-sm text-slate-400">Carregando...</div>}
-          {!patientsLoading && filtered.length === 0 && (
+          {/* Skeleton só no primeiro carregamento (lista vazia) */}
+          {showSkeleton && (
+            <div className="space-y-1.5 px-1 pt-1">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-12 rounded-xl animate-pulse" style={{ background: "rgba(0,0,0,0.05)", opacity: 1 - i * 0.15 }} />
+              ))}
+            </div>
+          )}
+
+          {!showSkeleton && filtered.length === 0 && (
             <div className="px-4 py-3 text-sm text-slate-400">
               {search ? "Nenhum resultado." : "Nenhum paciente vinculado."}
             </div>
           )}
+
           {filtered.map(p => {
             const active = pathname === `/patient/${p.id}`;
             return (
-              <button key={p.id} onClick={() => navigate(`/patient/${p.id}`)}
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 text-sm ${active ? "text-white" : "text-slate-900 hover:bg-white"}`}
-                style={active ? { background: "linear-gradient(135deg, #1e8c67de, #2a7fc4)", boxShadow: "0 6px 18px rgba(30,140,104,0.25)" } : {}}
+              <button
+                key={p.id}
+                onClick={() => navigate(`/patient/${p.id}`)}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                  active ? "text-white" : "text-slate-900 hover:bg-white"
+                }`}
+                style={active ? {
+                  background: "linear-gradient(135deg, #1e8c67de, #2a7fc4)",
+                  boxShadow: "0 6px 18px rgba(30,140,104,0.25)"
+                } : {}}
               >
                 <div className="font-medium">{p.name}</div>
-                <div className="text-xs text-slate-700">{p.specialties}</div>
+                {p.specialties && (
+                  <div className={`text-xs mt-0.5 ${active ? "text-white/70" : "text-slate-500"}`}>
+                    {p.specialties}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -286,7 +320,8 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
                     <div className="flex gap-2">
                       {(["claro", "sistema"] as const).map(t => (
                         <button key={t} onClick={() => setTema(t)} className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
-                          style={tema === t ? { background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", color: "white", boxShadow: "0 2px 8px rgba(30,140,104,0.3)" }
+                          style={tema === t
+                            ? { background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", color: "white", boxShadow: "0 2px 8px rgba(30,140,104,0.3)" }
                             : { background: "white", color: "#94a3b8", border: "1px solid #e2e8f0" }}>
                           {t === "claro" ? "☀️ Claro" : "💻 Sistema"}
                         </button>
