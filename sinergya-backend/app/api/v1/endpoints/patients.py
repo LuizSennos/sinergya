@@ -14,8 +14,9 @@ router = APIRouter()
 
 def check_patient_access(patient_id: str, current_user: User, db: Session):
     """Verifica se o usuário tem acesso ao paciente."""
+    # Admin não acessa dados clínicos (LGPD)
     if current_user.role == UserRole.admin:
-        return
+        raise HTTPException(status_code=403, detail="Administradores não acessam dados clínicos.")
     # Paciente/responsável só acessa o próprio registro
     if current_user.role in [UserRole.paciente, UserRole.responsavel]:
         patient = db.query(Patient).filter(
@@ -52,14 +53,14 @@ def list_patients(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    # Admin não acessa dados clínicos (LGPD)
     if current_user.role == UserRole.admin:
-        return db.query(Patient).filter(Patient.is_active == True).all()
+        raise HTTPException(status_code=403, detail="Administradores não acessam dados clínicos.")
     if current_user.role in [UserRole.paciente, UserRole.responsavel]:
-        patients = db.query(Patient).filter(
+        return db.query(Patient).filter(
             Patient.user_id == current_user.id,
             Patient.is_active == True
         ).all()
-        return patients
     # Profissional: retorna só pacientes do seu grupo
     member_patient_ids = db.query(GroupMember.patient_id).filter(
         GroupMember.user_id == current_user.id,
