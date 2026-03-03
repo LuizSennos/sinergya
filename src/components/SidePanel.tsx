@@ -93,20 +93,21 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
         style={{ background: SIDEBAR_BG, backdropFilter: "blur(10px)" }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2">
-                    <Image
+        <div className="px-5 py-4 flex items-center justify-center gap-2.5 border-b border-[#E6EEF8]">
+       <Image
                       src="/logo.png"
                       alt="Sinergya"
-                      width={48}
-                      height={48}
+                      width={36}
+                      height={36}
                       priority
                       style={{ filter: "drop-shadow(0 2px 8px rgba(30,140,104,0.18))" }}
                     />
                     <span className="text-lg font-bold tracking-tight" style={{ color: "#1a3d2b" }}>
                       Sinergya
                     </span>
-                  </div>
+        </div>
 
+      
      
         {/* Busca */}
         <div className="px-4 pt-4 pb-2">
