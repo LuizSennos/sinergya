@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from urllib.parse import quote_plus
 
 class Settings(BaseSettings):
     APP_NAME: str = "Sinergya"
@@ -14,19 +14,17 @@ class Settings(BaseSettings):
     DB_PORT: int = 5432
     DB_NAME: str = "sinergya"
 
-    DATABASE_URL_OVERRIDE: Optional[str] = None
-
     SUPABASE_URL: str
     SUPABASE_SERVICE_KEY: str
     STORAGE_BUCKET: str = "sinergya-media"
 
     @property
     def DATABASE_URL(self) -> str:
-     if self.DATABASE_URL_OVERRIDE:
-        return self.DATABASE_URL_OVERRIDE
-     return f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        password = quote_plus(self.DB_PASSWORD)
+        return f"postgresql+psycopg2://{self.DB_USER}:{password}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()
