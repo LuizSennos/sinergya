@@ -28,16 +28,16 @@ app.add_middleware(
 )
 
 # ─── ROTAS ───────────────────────────────────────────────────────────────────
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-app.include_router(users.router, prefix="/users", tags=["Usuários"])
-app.include_router(patients.router, prefix="/patients", tags=["Pacientes"])
-app.include_router(groups.router, prefix="/groups", tags=["Grupos"])
-app.include_router(diary.router, prefix="/diary", tags=["Diário"])
-app.include_router(tasks.router, prefix="/tasks", tags=["Tarefas"])
-app.include_router(admin.router, prefix="/admin", tags=["Admin"])
-app.include_router(upload.router,   prefix="/upload",   tags=["upload"])
-app.include_router(messages.router, prefix="/messages", tags=["Mensagens"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(users.router, prefix="/api/users", tags=["Usuários"])
+app.include_router(patients.router, prefix="/api/patients", tags=["Pacientes"])
+app.include_router(groups.router, prefix="/api/groups", tags=["Grupos"])
+app.include_router(diary.router, prefix="/api/diary", tags=["Diário"])
+app.include_router(tasks.router, prefix="/api/tasks", tags=["Tarefas"])
+app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(upload.router, prefix="/api/upload", tags=["upload"])
+app.include_router(messages.router, prefix="/api/messages", tags=["Mensagens"])
 
-@app.get("/health", tags=["Sistema"])
+@app.get("/api/health", tags=["Sistema"])
 def health():
     return {"status": "ok", "app": "Sinergya"}
