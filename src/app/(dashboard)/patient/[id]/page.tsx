@@ -172,6 +172,8 @@ export default function PatientPage() {
   }
 }, [user, loading, router]);
 
+
+
   useEffect(() => {
     if (!id || !user || PACIENTE_ROLES.includes(user.role)) return;
     setDataLoading(true);
@@ -270,18 +272,18 @@ export default function PatientPage() {
     textareaRef.current?.focus();
   };
 
-  if (loading || !user || PACIENTE_ROLES.includes(user.role)) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-slate-50">
-        <div className="text-center">
-          <div className="w-10 h-10 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: BRAND_GRADIENT }}>
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          </div>
-          <p className="text-slate-500 text-sm">Verificando permissões...</p>
+  if (loading || !user || PACIENTE_ROLES.includes(user.role) || user.role === "admin") {
+  return (
+    <div className="flex items-center justify-center h-screen bg-slate-50">
+      <div className="text-center">
+        <div className="w-10 h-10 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: BRAND_GRADIENT }}>
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
         </div>
+        <p className="text-slate-500 text-sm">Verificando permissões...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   if (dataLoading) return (
     <div className="flex items-center justify-center h-full text-slate-400 text-sm gap-3">
