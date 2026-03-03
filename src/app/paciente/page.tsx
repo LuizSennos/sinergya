@@ -211,7 +211,7 @@ export default function PacientePage() {
 
   useEffect(() => {
     if (!loading && !user) { window.location.href = "/login"; return; }
-    if (!loading && user && !["paciente", "responsavel"].includes(user.role)) window.location.href = "/admin";
+    if (!loading && user && !["paciente", "responsavel"].includes(user.role)) window.location.href = "/login";
   }, [user, loading]);
 
   useEffect(() => {

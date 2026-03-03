@@ -10,8 +10,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 
 const BRAND_GRADIENT   = "linear-gradient(135deg, #1e8c68 0%, #2a7fc4 100%)";
-const TECNICO_GRADIENT = "linear-gradient(135deg, #b9d90642 0%, #b4530905 100%)";
-const OWN_BUBBLE = "linear-gradient(135deg, #2db88a 0%, #3d9ae8 100%)";
+const TECNICO_GRADIENT = "linear-gradient(135deg, #d97706 0%, #b45309 100%)";
 const EMOJIS = ["😊","😄","👍","❤️","🙏","💪","✅","⚠️","📋","💬","🔒","📝","🎯","💡","⏰","📅"];
 
 function formatDate(iso: string) {
@@ -120,7 +119,7 @@ function AttachmentPreview({ file, onRemove }: { file: File; onRemove: () => voi
 
 type Tab = "assistencial" | "tecnico" | "diario" | "tarefas";
 const PACIENTE_ROLES = ["paciente", "responsavel"];
-const ALLOWED_ROLES  = ["admin", "profissional", "academico", "supervisor"];
+const ALLOWED_ROLES  = ["profissional", "academico", "supervisor"];
 
 export default function PatientPage() {
   const { id } = useParams<{ id: string }>();
@@ -165,14 +164,12 @@ export default function PatientPage() {
   }, [id]);
 
   useEffect(() => {
-  if (!loading) {
-    if (!user) router.replace("/login");
-    else if (user.role === "admin") router.replace("/admin");
-    else if (PACIENTE_ROLES.includes(user.role)) router.replace("/paciente");
-  }
-}, [user, loading, router]);
-
-
+    if (!loading) {
+      if (!user) router.replace("/login");
+      else if (user.role === "admin") router.replace("/admin");
+      else if (PACIENTE_ROLES.includes(user.role)) router.replace("/paciente");
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     if (!id || !user || PACIENTE_ROLES.includes(user.role)) return;
@@ -272,17 +269,17 @@ export default function PatientPage() {
     textareaRef.current?.focus();
   };
 
-if (loading) {
-  return (
-    <div className="flex items-center justify-center h-screen bg-slate-50">
-      <div className="w-4 h-4 border-2 border-slate-300 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="w-4 h-4 border-2 border-slate-300 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-if (!user || PACIENTE_ROLES.includes(user.role) || user.role === "admin") {
-  return null;
-}
+  if (!user || PACIENTE_ROLES.includes(user.role) || user.role === "admin") {
+    return null;
+  }
 
   if (dataLoading) return (
     <div className="flex items-center justify-center h-full text-slate-400 text-sm gap-3">
@@ -426,55 +423,48 @@ if (!user || PACIENTE_ROLES.includes(user.role) || user.role === "admin") {
                 </div>
               )}
 
-       {filteredMessages.map((msg: any) => {
-  const own = isOwnMessage(msg);
-  if (!msg.content?.trim() && !msg.attachment_url) return null;
-  return (
-    <div key={msg.id} className={`flex items-end gap-2 ${own ? "justify-end" : "justify-start"}`}>
-      
-      {/* Avatar esquerda (outros) */}
-      {!own && (
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
-          style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
-          {msg.author_name?.[0]?.toUpperCase() ?? "?"}
-        </div>
-      )}
+              {filteredMessages.map((msg: any) => {
+                const own = isOwnMessage(msg);
+                if (!msg.content?.trim() && !msg.attachment_url) return null;
+                return (
+                  <div key={msg.id} className={`flex items-end gap-2 ${own ? "justify-end" : "justify-start"}`}>
 
-      <div className={`flex flex-col gap-1 ${own ? "items-end max-w-[55%]" : "items-start max-w-[55%]"}`}>
-        {/* Nome + hora */}
-        <div className={`flex items-center gap-1.5 ${own ? "flex-row-reverse" : ""}`}>
-          <span className="text-[11px] font-semibold text-slate-500">{own ? "Você" : msg.author_name}</span>
-          <span className="text-[10px] text-slate-400">{formatTime(msg.created_at)}</span>
-        </div>
+                    {!own && (
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                        style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
+                        {msg.author_name?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                    )}
 
-        {/* Bubble */}
-       <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full min-w-[2rem] ${
-  own
-    ? "rounded-2xl rounded-br-sm text-slate-900"
-    : "rounded-2xl rounded-bl-sm bg-white border border-slate-100 text-slate-800"
-}`} style={
-  own
-    ? { background: "#e8f7f2", border: "1px solid #b2dfd1" }  // verde bem clarinho
-    : isTecnico
-      ? { background: "#fffbeb", border: "1px solid #fde68a" }
-      : { background: "white", border: "1px solid #e2e8f0" }
-}>
-          {msg.content && <p className="break-words">{msg.content}</p>}
-          <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />
-        </div>
-      </div>
+                    <div className={`flex flex-col gap-1 ${own ? "items-end max-w-[55%]" : "items-start max-w-[55%]"}`}>
+                      <div className={`flex items-center gap-1.5 ${own ? "flex-row-reverse" : ""}`}>
+                        <span className="text-[11px] font-semibold text-slate-500">{own ? "Você" : msg.author_name}</span>
+                        <span className="text-[10px] text-slate-400">{formatTime(msg.created_at)}</span>
+                      </div>
 
-      {/* Avatar direita (próprio) */}
-      {own && (
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
-          style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
-          {msg.author_name?.[0]?.toUpperCase() ?? "?"}
-        </div>
-      )}
+                      <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full min-w-[2rem] ${
+                        own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"
+                      }`} style={
+                        own
+                          ? { background: "#e8f7f2", border: "1px solid #b2dfd1", color: "#1e293b" }
+                          : isTecnico
+                            ? { background: "#fffbeb", border: "1px solid #fde68a", color: "#1e293b" }
+                            : { background: "white", border: "1px solid #e2e8f0", color: "#1e293b" }
+                      }>
+                        {msg.content && <p className="break-words">{msg.content}</p>}
+                        <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />
+                      </div>
+                    </div>
 
-    </div>
-  );
-})}
+                    {own && (
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                        style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
+                        {msg.author_name?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
