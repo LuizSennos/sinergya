@@ -23,17 +23,3 @@ def token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not result:
         raise HTTPException(status_code=401, detail="Credenciais inválidas.")
     return result
-
-@router.get('/debug-hash')
-def debug_hash(db: Session = Depends(get_db)):
-    from app.core.security import hash_password, verify_password
-    user = db.query(User).filter(User.email == 'admin@sinergya.com').first()
-    if not user:
-        return {'error': 'user not found'}
-    test = verify_password('Admin123', user.hashed_password)
-    new_hash = hash_password('Admin123')
-    return {
-        'hash_in_db': user.hashed_password,
-        'verify_result': test,
-        'new_hash_generated': new_hash,
-    }

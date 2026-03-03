@@ -3,15 +3,10 @@ from app.models.user import User
 from app.core.security import verify_password, create_access_token
 
 def authenticate(db: Session, email: str, password: str):
-    print(f"[DEBUG] email: '{email}' | password: '{password}' | len: {len(password)}")
     user = db.query(User).filter(User.email == email, User.is_active == True).first()
-    if not user:
-        print("[DEBUG] user NAO encontrado")
+    if not user or not verify_password(password, user.hashed_password):
         return None
-    print(f"[DEBUG] hash no banco: '{user.hashed_password}'")
-    result = verify_password(password, user.hashed_password)
-    print(f"[DEBUG] verify_password result: {result}")
-    return user if result else None
+    return user
 
 def login(db: Session, email: str, password: str):
     user = authenticate(db, email, password)
