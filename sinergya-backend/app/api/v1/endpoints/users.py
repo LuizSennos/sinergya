@@ -9,8 +9,13 @@ from app.services.audit import log
 
 router = APIRouter()
 
-@router.post('/', response_model=UserOut)
-def create_user(payload: UserCreate, db: Session = Depends(get_db)):
+@router.post('/', response_model=UserOut, dependencies=[Depends(require_roles(UserRole.admin))])
+def create_user(
+    payload: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Apenas admin pode criar usuários."""
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(status_code=400, detail='Email ja cadastrado.')
@@ -27,6 +32,7 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+    log(db, current_user, "create_user", "user", user.id, user.email)
     return user
 
 @router.get('/me', response_model=UserOut)
@@ -34,7 +40,11 @@ def me(current_user: User = Depends(get_current_user)):
     return current_user
 
 @router.post('/lgpd-consent')
-def lgpd_consent(payload: LGPDConsent, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def lgpd_consent(
+    payload: LGPDConsent,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     current_user.lgpd_consent = payload.consent
     current_user.lgpd_consent_at = datetime.utcnow()
     db.commit()
@@ -52,8 +62,6 @@ def toggle_active(user_id: str, active: bool, db: Session = Depends(get_db)):
     user.is_active = active
     db.commit()
     return {'ok': True}
-
-# Adicionar no arquivo users.py do backend
 
 @router.patch("/{user_id}/status", response_model=UserOut, summary="Ativar ou desativar usuário")
 def toggle_user_status(
@@ -75,4 +83,3 @@ def toggle_user_status(
     action = "activate_user" if target.is_active else "deactivate_user"
     log(db, current_user, action, "user", target.id, target.email)
     return target
-    

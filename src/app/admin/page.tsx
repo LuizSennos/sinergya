@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { apiAdminStats, apiAdminUsers, apiAdminLogs, apiCreatePatient, apiGetPatients, apiBindPatientToUser, apiToggleUserStatus } from "@/lib/api";
+import { apiAdminStats, apiAdminUsers, apiAdminLogs, apiCreatePatient, apiBindPatientToUser, apiToggleUserStatus } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import NewUserModal from "@/components/NewUserModal";
 
-type AdminTab = "stats" | "users" | "patients" | "logs";
+// Removido: apiGetPatients — admin não acessa dados clínicos (LGPD)
+// Removida: aba "Pacientes" com dados clínicos
+
+type AdminTab = "stats" | "users" | "logs";
 
 const roleLabel: Record<string, string> = {
   admin: "Admin", profissional: "Profissional", academico: "Acadêmico",
@@ -30,18 +33,10 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("stats");
   const [stats, setStats] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
-  const [patients, setPatients] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  const [showNewPatient, setShowNewPatient] = useState(false);
-  const [newPatient, setNewPatient] = useState({ name: "", specialties: "", is_minor: false });
-  const [savingPatient, setSavingPatient] = useState(false);
   const [showNewUser, setShowNewUser] = useState(false);
-  const [showBindUser, setShowBindUser] = useState(false);
-  const [bindPatientId, setBindPatientId] = useState("");
-  const [bindUserId, setBindUserId] = useState("");
-  const [savingBind, setSavingBind] = useState(false);
   const [showActions, setShowActions] = useState(false);
 
   useEffect(() => {
@@ -61,14 +56,12 @@ export default function AdminPage() {
   async function reload() {
     setDataLoading(true);
     try {
-      const [s, u, p] = await Promise.all([
+      const [s, u] = await Promise.all([
         apiAdminStats().catch(() => null),
         apiAdminUsers().catch(() => []),
-        apiGetPatients().catch(() => []),
       ]);
       if (s) setStats(s);
       setUsers(u ?? []);
-      setPatients(p ?? []);
     } finally { setDataLoading(false); }
   }
 
@@ -82,51 +75,18 @@ export default function AdminPage() {
     finally { setTogglingId(null); }
   }
 
-  async function handleCreatePatient() {
-    if (!newPatient.name.trim()) return;
-    setSavingPatient(true);
-    try {
-      await apiCreatePatient(newPatient);
-      await reload();
-      setShowNewPatient(false);
-      setNewPatient({ name: "", specialties: "", is_minor: false });
-    } catch (err: any) { alert(err.message); }
-    finally { setSavingPatient(false); }
-  }
-
-  async function handleBindUser() {
-    if (!bindPatientId || !bindUserId) return;
-    setSavingBind(true);
-    try {
-      await apiBindPatientToUser(bindPatientId, bindUserId);
-      await reload();
-      setShowBindUser(false);
-      setBindPatientId(""); setBindUserId("");
-    } catch (err: any) { alert(err.message); }
-    finally { setSavingBind(false); }
-  }
-
   if (loading || !user || user.role !== "admin") return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7fbf9" }}>
       <p className="text-slate-400 text-sm">Verificando acesso...</p>
     </div>
   );
 
-  const pacientes = users.filter(u => ["paciente", "responsavel"].includes(u.role));
-
   return (
     <main className="min-h-screen" style={{ background: "radial-gradient(ellipse at 60% 0%, rgba(30,140,104,0.07) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(42,127,196,0.06) 0%, transparent 40%), #f7fbf9" }}>
 
-      {/* ── HEADER ── */}
-      <header
-        className="px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-30"
-        style={{
-          background: "rgba(247,251,249,0.92)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(30,140,104,0.1)",
-        }}
-      >
-        {/* Logo */}
+      {/* HEADER */}
+      <header className="px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-30"
+        style={{ background: "rgba(247,251,249,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(30,140,104,0.1)" }}>
         <div className="flex items-center gap-2">
           <Image src="/logo.png" alt="Sinergya" width={32} height={32} priority
             style={{ filter: "drop-shadow(0 2px 6px rgba(30,140,104,0.2))" }} />
@@ -134,8 +94,6 @@ export default function AdminPage() {
           <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold"
             style={{ background: "rgba(30,140,104,0.1)", color: "#1e8c68" }}>Admin</span>
         </div>
-
-        {/* Usuário + logout */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2">
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
@@ -148,8 +106,7 @@ export default function AdminPage() {
             </div>
           </div>
           <button onClick={logout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all"
-          >
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
@@ -161,14 +118,13 @@ export default function AdminPage() {
 
       <div className="px-4 md:px-8 py-6 max-w-6xl mx-auto">
 
-        {/* ── TÍTULO + AÇÕES ── */}
+        {/* TÍTULO + AÇÕES */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl md:text-2xl font-black text-slate-800">Painel Administrativo</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Gerencie usuários, pacientes e visualize métricas</p>
+              <p className="text-xs text-slate-400 mt-0.5">Gerencie usuários e visualize métricas do sistema</p>
             </div>
-            {/* Mobile: botão + */}
             <button onClick={() => setShowActions(!showActions)}
               className="md:hidden w-9 h-9 rounded-xl text-white flex items-center justify-center text-xl font-light shadow-lg"
               style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)" }}>
@@ -176,26 +132,14 @@ export default function AdminPage() {
             </button>
           </div>
 
-          {/* Desktop: botões inline */}
           <div className="hidden md:flex gap-2 flex-wrap mt-4">
             <button onClick={() => setShowNewUser(true)}
               className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md"
               style={{ background: "white", border: "1.5px solid rgba(42,127,196,0.3)", color: "#2a7fc4" }}>
               + Novo usuário
             </button>
-            <button onClick={() => setShowNewPatient(true)}
-              className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02] hover:shadow-lg"
-              style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", boxShadow: "0 4px 14px rgba(30,140,104,0.25)" }}>
-              + Novo paciente
-            </button>
-            <button onClick={() => setShowBindUser(true)}
-              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md"
-              style={{ background: "white", border: "1.5px solid rgba(30,140,104,0.3)", color: "#1e8c68" }}>
-              Vincular usuário ↔ paciente
-            </button>
           </div>
 
-          {/* Mobile: expandível */}
           {showActions && (
             <div className="md:hidden flex flex-col gap-2 mt-3">
               <button onClick={() => { setShowNewUser(true); setShowActions(false); }}
@@ -203,37 +147,20 @@ export default function AdminPage() {
                 style={{ border: "1.5px solid rgba(42,127,196,0.3)", color: "#2a7fc4" }}>
                 + Novo usuário
               </button>
-              <button onClick={() => { setShowNewPatient(true); setShowActions(false); }}
-                className="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white"
-                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)" }}>
-                + Novo paciente
-              </button>
-              <button onClick={() => { setShowBindUser(true); setShowActions(false); }}
-                className="w-full px-4 py-3 rounded-xl text-sm font-semibold bg-white"
-                style={{ border: "1.5px solid rgba(30,140,104,0.3)", color: "#1e8c68" }}>
-                Vincular usuário ↔ paciente
-              </button>
             </div>
           )}
         </div>
 
-        {/* ── TABS ── */}
+        {/* TABS */}
         <div className="flex gap-0.5 mb-6 p-1 rounded-2xl" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(30,140,104,0.1)" }}>
           {([
             ["stats", "📊 Indicadores"],
             ["users", "👥 Usuários"],
-            ["patients", "🩺 Pacientes"],
             ["logs", "📋 Auditoria"],
           ] as [AdminTab, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setActiveTab(key)}
               className="flex-1 px-3 py-2 text-xs md:text-sm font-semibold rounded-xl transition-all duration-200 whitespace-nowrap"
-              style={activeTab === key ? {
-                background: "white",
-                color: "#1e8c68",
-                boxShadow: "0 2px 8px rgba(30,140,104,0.12)",
-              } : {
-                color: "#94a3b8",
-              }}>
+              style={activeTab === key ? { background: "white", color: "#1e8c68", boxShadow: "0 2px 8px rgba(30,140,104,0.12)" } : { color: "#94a3b8" }}>
               {label}
             </button>
           ))}
@@ -245,15 +172,15 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ── STATS ── */}
+        {/* STATS */}
         {!dataLoading && activeTab === "stats" && stats && (
           <div className="space-y-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: "Usuários ativos", value: stats.active_users, color: "#1e8c68", bg: "rgba(30,140,104,0.08)", icon: "✅" },
                 { label: "Total usuários", value: stats.total_users, color: "#2a7fc4", bg: "rgba(42,127,196,0.08)", icon: "👥" },
-                { label: "Pacientes", value: stats.total_patients, color: "#c9a227", bg: "rgba(201,162,39,0.08)", icon: "🩺" },
-                { label: "Mensagens", value: stats.total_messages, color: "#7c3aed", bg: "rgba(124,58,237,0.08)", icon: "💬" },
+                { label: "Tarefas criadas", value: stats.total_tasks, color: "#c9a227", bg: "rgba(201,162,39,0.08)", icon: "✅" },
+                { label: "Logs de auditoria", value: stats.total_audit_logs, color: "#7c3aed", bg: "rgba(124,58,237,0.08)", icon: "📋" },
               ].map(s => (
                 <div key={s.label} className="rounded-2xl p-5 bg-white border border-slate-100"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
@@ -265,7 +192,6 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
-
             <div className="bg-white rounded-2xl p-6 border border-slate-100" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
               <h3 className="text-sm font-bold text-slate-700 mb-4">Usuários por perfil</h3>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
@@ -282,10 +208,9 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ── USERS ── */}
+        {/* USERS */}
         {!dataLoading && activeTab === "users" && (
           <>
-            {/* Desktop */}
             <div className="hidden md:block bg-white rounded-2xl border border-slate-100 overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
               <table className="w-full text-sm">
                 <thead style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
@@ -335,7 +260,6 @@ export default function AdminPage() {
               </table>
             </div>
 
-            {/* Mobile cards */}
             <div className="md:hidden space-y-3">
               {users.map((u: any) => (
                 <div key={u.id} className={`bg-white rounded-2xl p-4 border border-slate-100 ${!u.is_active ? "opacity-50" : ""}`}
@@ -372,91 +296,7 @@ export default function AdminPage() {
           </>
         )}
 
-        {/* ── PATIENTS ── */}
-        {!dataLoading && activeTab === "patients" && (
-          <>
-            <div className="hidden md:block bg-white rounded-2xl border border-slate-100 overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-              <table className="w-full text-sm">
-                <thead style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-                  <tr>
-                    {["Nome", "Especialidades", "Menor", "Usuário vinculado", "Status", "Cadastro"].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {patients.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-300 text-xs">Nenhum paciente cadastrado.</td></tr>
-                  )}
-                  {patients.map((p: any) => {
-                    const linkedUser = users.find(u => u.id === p.user_id);
-                    return (
-                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                              style={{ background: "rgba(201,162,39,0.1)", color: "#c9a227" }}>
-                              {p.name?.[0]?.toUpperCase()}
-                            </div>
-                            <span className="font-semibold text-slate-800">{p.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-slate-400 text-xs">{p.specialties || "—"}</td>
-                        <td className="px-4 py-3">
-                          {p.is_minor
-                            ? <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">Sim</span>
-                            : <span className="text-xs text-slate-300">Não</span>}
-                        </td>
-                        <td className="px-4 py-3">
-                          {linkedUser
-                            ? <span className="text-xs font-semibold text-emerald-500">✓ {linkedUser.name}</span>
-                            : <button onClick={() => { setBindPatientId(p.id); setShowBindUser(true); }}
-                                className="text-xs font-semibold text-amber-500 hover:text-amber-600 underline underline-offset-2">
-                                Vincular
-                              </button>}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${p.is_active ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
-                            {p.is_active ? "Ativo" : "Inativo"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-400 text-xs">{formatDate(p.created_at)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="md:hidden space-y-3">
-              {patients.map((p: any) => {
-                const linkedUser = users.find(u => u.id === p.user_id);
-                return (
-                  <div key={p.id} className="bg-white rounded-2xl p-4 border border-slate-100" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-semibold text-slate-800 text-sm">{p.name}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{p.specialties || "—"}</p>
-                      </div>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${p.is_active ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
-                        {p.is_active ? "Ativo" : "Inativo"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      {p.is_minor && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">Menor</span>}
-                      {linkedUser
-                        ? <span className="text-xs font-semibold text-emerald-500">✓ {linkedUser.name}</span>
-                        : <button onClick={() => { setBindPatientId(p.id); setShowBindUser(true); }} className="text-xs font-semibold text-amber-500 underline">Vincular</button>}
-                      <span className="text-xs text-slate-300 ml-auto">{formatDate(p.created_at)}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        {/* ── LOGS ── */}
+        {/* LOGS */}
         {activeTab === "logs" && (
           <>
             <div className="hidden md:block bg-white rounded-2xl border border-slate-100 overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
@@ -506,111 +346,6 @@ export default function AdminPage() {
           </>
         )}
       </div>
-
-      {/* ── MODAL NOVO PACIENTE ── */}
-      {showNewPatient && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
-          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}
-          onClick={() => setShowNewPatient(false)}>
-          <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-md p-6 shadow-2xl"
-            onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)" }}>
-                <span className="text-white text-sm">🩺</span>
-              </div>
-              <h2 className="text-lg font-black text-slate-800">Novo Paciente</h2>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Nome completo *</label>
-                <input value={newPatient.name} onChange={e => setNewPatient(p => ({ ...p, name: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition"
-                  style={{ borderColor: "#e2e8f0", background: "#f8fafc" }}
-                  onFocus={e => { e.currentTarget.style.borderColor = "#1e8c68"; e.currentTarget.style.background = "#fff"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(30,140,104,0.08)"; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; e.currentTarget.style.boxShadow = "none"; }}
-                  placeholder="Ex: João da Silva" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Especialidades</label>
-                <input value={newPatient.specialties} onChange={e => setNewPatient(p => ({ ...p, specialties: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition"
-                  style={{ borderColor: "#e2e8f0", background: "#f8fafc" }}
-                  onFocus={e => { e.currentTarget.style.borderColor = "#1e8c68"; e.currentTarget.style.background = "#fff"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(30,140,104,0.08)"; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; e.currentTarget.style.boxShadow = "none"; }}
-                  placeholder="Ex: Psicologia • Fonoaudiologia" />
-              </div>
-              <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                <input type="checkbox" checked={newPatient.is_minor} onChange={e => setNewPatient(p => ({ ...p, is_minor: e.target.checked }))}
-                  className="w-4 h-4 rounded" style={{ accentColor: "#1e8c68" }} />
-                <span className="text-sm text-slate-700">Paciente menor de idade</span>
-              </label>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button onClick={() => setShowNewPatient(false)}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-slate-500 border border-slate-200 hover:bg-slate-50 transition-colors">
-                Cancelar
-              </button>
-              <button onClick={handleCreatePatient} disabled={savingPatient || !newPatient.name.trim()}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-all hover:scale-[1.01]"
-                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", boxShadow: "0 4px 14px rgba(30,140,104,0.3)" }}>
-                {savingPatient ? "Salvando..." : "Criar paciente"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL VINCULAR ── */}
-      {showBindUser && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
-          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}
-          onClick={() => setShowBindUser(false)}>
-          <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-md p-6 shadow-2xl"
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                style={{ background: "rgba(30,140,104,0.1)" }}>
-                <span className="text-lg">🔗</span>
-              </div>
-              <h2 className="text-lg font-black text-slate-800">Vincular Usuário ao Paciente</h2>
-            </div>
-            <p className="text-xs text-slate-400 mb-5 ml-12">Permite que o paciente acesse o próprio registro clínico ao fazer login.</p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Paciente</label>
-                <select value={bindPatientId} onChange={e => setBindPatientId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none bg-white"
-                  style={{ borderColor: "#e2e8f0" }}>
-                  <option value="">Selecionar paciente...</option>
-                  {patients.map((p: any) => <option key={p.id} value={p.id}>{p.name}{p.user_id ? " ✓ vinculado" : ""}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Usuário</label>
-                <select value={bindUserId} onChange={e => setBindUserId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border text-sm outline-none bg-white"
-                  style={{ borderColor: "#e2e8f0" }}>
-                  <option value="">Selecionar usuário...</option>
-                  {pacientes.map((u: any) => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button onClick={() => { setShowBindUser(false); setBindPatientId(""); setBindUserId(""); }}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-slate-500 border border-slate-200 hover:bg-slate-50 transition-colors">
-                Cancelar
-              </button>
-              <button onClick={handleBindUser} disabled={savingBind || !bindPatientId || !bindUserId}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-all hover:scale-[1.01]"
-                style={{ background: "linear-gradient(135deg, #1e8c68, #2a7fc4)", boxShadow: "0 4px 14px rgba(30,140,104,0.3)" }}>
-                {savingBind ? "Vinculando..." : "Vincular"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showNewUser && (
         <NewUserModal
