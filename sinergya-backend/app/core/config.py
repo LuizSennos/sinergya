@@ -22,9 +22,9 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        if self.DATABASE_URL_OVERRIDE:
-            return self.DATABASE_URL_OVERRIDE
-        return f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?prepared_statement_cache_size=0"
+     if self.DATABASE_URL_OVERRIDE:
+        return self.DATABASE_URL_OVERRIDE
+     return f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     class Config:
         env_file = ".env"
