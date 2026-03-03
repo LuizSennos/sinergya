@@ -75,8 +75,11 @@ def assert_linked(
     patient_id: str,
 ):
     patient_id = validate_uuid(patient_id, "patient_id")
+    
+    # Admin não acessa conteúdo clínico (LGPD)
     if current_user.role == UserRole.admin:
-        return
+        raise HTTPException(status_code=403, detail="Administradores não acessam conteúdo clínico.")
+    
     # Paciente/responsável acessa o próprio registro
     if current_user.role in [UserRole.paciente, UserRole.responsavel]:
         from app.models.patient import Patient
@@ -87,6 +90,7 @@ def assert_linked(
         if not patient:
             raise HTTPException(status_code=403, detail="Acesso negado.")
         return
+    
     # Profissional precisa de vínculo
     linked = (
         db.query(GroupMember)
