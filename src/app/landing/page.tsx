@@ -990,14 +990,19 @@ color: "#1e8c68" // O verde inicial do seu gradiente
       
       {/* LADO ESQUERDO: LOGO PNG */}
       <div className="flex flex-col items-center md:items-start">
-        <div className="flex items-center gap-3 mb-4">
-          <img 
-            src="/logo.png" 
-            alt="Sinergya Logo" 
-            className="h-9 w-auto object-contain" 
-          />
-          <span className="font-black text-2xl text-slate-900 tracking-tight">Sinergya</span>
-        </div>
+         <div className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="Sinergya"
+              width={48}
+              height={48}
+              priority
+              style={{ filter: "drop-shadow(0 2px 8px rgba(30,140,104,0.18))" }}
+            />
+            <span className="text-lg font-bold tracking-tight" style={{ color: "#1a3d2b" }}>
+              Sinergya
+            </span>
+          </div>
         <p className="text-sm text-slate-400 max-w-xs text-center md:text-left">
           Tecnologia inteligente para gestão de clínicas e cuidado multiprofissional.
         </p>

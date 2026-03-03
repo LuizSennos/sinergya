@@ -214,17 +214,19 @@ export default function LoginPage() {
           style={{ background: "radial-gradient(circle, rgba(42,127,196,0.2), transparent 70%)", transform: "translate(30%, 30%)" }} />
 
         {/* Logo no topo */}
-        <div className="flex items-center gap-3 relative z-10">
-          <Image
-            src="/logo.png"
-            alt="Sinergya"
-            width={48}
-            height={48}
-            priority
-            style={{ filter: "drop-shadow(0 2px 8px rgba(79,191,159,0.4))" }}
-          />
-          <span className="text-xl font-bold tracking-tight" style={{ color: "#1a3d2ba8" }}>Sinergya</span>
-        </div>
+         <div className="flex items-center gap-2">
+                   <Image
+                     src="/logo.png"
+                     alt="Sinergya"
+                     width={48}
+                     height={48}
+                     priority
+                     style={{ filter: "drop-shadow(0 2px 8px rgba(30,140,104,0.18))" }}
+                   />
+                   <span className="text-lg font-bold tracking-tight" style={{ color: "#1a3d2b" }}>
+                     Sinergya
+                   </span>
+                 </div>
 
         {/* Ilustração central */}
         <div className="flex-1 flex items-center justify-center relative z-10 py-4">

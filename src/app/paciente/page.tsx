@@ -372,9 +372,18 @@ export default function PacientePage() {
       <header className="px-5 md:px-8 py-4 flex items-center justify-between sticky top-0 z-30 flex-shrink-0"
         style={{ background: "rgba(247,251,249,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(30,140,104,0.1)" }}>
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Sinergya" width={32} height={32} priority style={{ filter: "drop-shadow(0 2px 6px rgba(30,140,104,0.2))" }} />
-          <span className="text-base font-black" style={{ color: "#1a3d2b" }}>Sinergya</span>
-        </div>
+                           <Image
+                             src="/logo.png"
+                             alt="Sinergya"
+                             width={48}
+                             height={48}
+                             priority
+                             style={{ filter: "drop-shadow(0 2px 8px rgba(30,140,104,0.18))" }}
+                           />
+                           <span className="text-lg font-bold tracking-tight" style={{ color: "#1a3d2b" }}>
+                             Sinergya
+                           </span>
+                         </div>
         <div className="flex items-center gap-2">
           <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold"
             style={{ background: "rgba(30,140,104,0.08)", color: "#1e8c68", border: "1px solid rgba(30,140,104,0.12)" }}>🔒 LGPD</span>
