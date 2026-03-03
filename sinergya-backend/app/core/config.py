@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     DB_USER: str = "postgres"
-    DB_PASSWORD: str
+     DB_PASSWORD: str | None = None
     DB_HOST: str = "127.0.0.1"
     DB_PORT: int = 5432
     DB_NAME: str = "sinergya"
