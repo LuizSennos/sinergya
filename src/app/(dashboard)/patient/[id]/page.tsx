@@ -165,11 +165,12 @@ export default function PatientPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) router.replace("/login");
-      else if (PACIENTE_ROLES.includes(user.role)) router.replace("/paciente");
-    }
-  }, [user, loading, router]);
+  if (!loading) {
+    if (!user) router.replace("/login");
+    else if (user.role === "admin") router.replace("/admin");
+    else if (PACIENTE_ROLES.includes(user.role)) router.replace("/paciente");
+  }
+}, [user, loading, router]);
 
   useEffect(() => {
     if (!id || !user || PACIENTE_ROLES.includes(user.role)) return;
