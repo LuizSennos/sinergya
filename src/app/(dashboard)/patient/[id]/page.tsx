@@ -317,7 +317,10 @@ export default function PatientPage() {
   return (
     <div className="flex flex-col h-full bg-white" style={{ minHeight: 0 }}>
 
-     {/* Mobile header + Tabs Premium */}
+      {/* Header — mobile: limpo com logo+nome+avatar | desktop: completo */}
+      <div className="flex-shrink-0 bg-white border-b border-slate-100">
+
+        {/* Mobile header + Tabs no topo */}
 <div className="md:hidden sticky top-0 z-30 bg-white border-b border-slate-100">
 
   {/* Header */}
@@ -329,6 +332,8 @@ export default function PatientPage() {
       WebkitBackdropFilter: "blur(12px)"
     }}
   >
+
+    {/* Hamburguer */}
     <button
       onClick={() => window.dispatchEvent(new CustomEvent("open-sidebar"))}
       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition active:scale-95"
@@ -341,6 +346,7 @@ export default function PatientPage() {
       </svg>
     </button>
 
+    {/* Nome paciente */}
     <div className="flex items-center gap-2 flex-1 min-w-0">
       <div
         className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0"
@@ -348,10 +354,12 @@ export default function PatientPage() {
       >
         {patient.name?.[0]?.toUpperCase()}
       </div>
+
       <div className="min-w-0">
         <p className="text-sm font-bold text-slate-900 truncate leading-tight">
           {patient.name}
         </p>
+
         {patient.specialties && (
           <p className="text-[10px] text-slate-400 truncate">
             {patient.specialties}
@@ -360,6 +368,7 @@ export default function PatientPage() {
       </div>
     </div>
 
+    {/* Avatar usuário */}
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
       style={{ background: "rgba(30,140,104,0.12)", color: "#1e8c68" }}
@@ -368,8 +377,9 @@ export default function PatientPage() {
     </div>
   </div>
 
-  {/* Tabs estilo premium */}
-  <div className="px-3 pb-2 bg-white">
+  {/* Tabs estilo App (menu agora fica EM CIMA) */}
+  <div className="px-3 pb-3 bg-white">
+
     <div className="bg-slate-100 p-1 rounded-2xl flex gap-1 overflow-x-auto">
 
       {tabs.map(tab => {
