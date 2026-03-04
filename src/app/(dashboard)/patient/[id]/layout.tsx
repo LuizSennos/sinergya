@@ -24,7 +24,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [patientsLoading, setPatientsLoading] = useState(true);
 
   // Dentro de /patient/[id] no mobile o header é próprio da página — esconde o topbar do layout
-  const isPatientPage = /^\/patient\/[^/]+/.test(pathname ?? "");
+  // Usa includes por ser mais robusto durante hydration do Next.js
+  const isPatientPage = !!(pathname && pathname.startsWith("/patient/") && pathname.length > "/patient/".length);
 
   // Escuta evento customizado disparado pelo header da página do paciente
   useEffect(() => {
