@@ -69,7 +69,8 @@ export async function apiToggleUserStatus(userId: string, isActive: boolean) {
 }
 
 // ── Pacientes ─────────────────────────────────────────────────────────────────
-export async function apiGetPatients() { return request<any[]>("/patients/admin-list"); }
+export async function apiGetPatients() { return request<any[]>("/patients/"); }  // profissional: seus pacientes vinculados
+export async function apiAdminGetPatients() { return request<any[]>("/patients/admin-list"); }  // admin: lista operacional
 export async function apiGetPatient(id: string) { return request<any>(`/patients/${id}`); }
 export async function apiGetMyPatient() { return request<any>("/patients/me"); }
 export async function apiCreatePatient(data: any) { return request("/patients/", { method: "POST", body: JSON.stringify(data) }); }

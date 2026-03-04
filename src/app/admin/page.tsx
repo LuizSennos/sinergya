@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { apiAdminStats, apiAdminUsers, apiAdminLogs, apiCreatePatient, apiGetPatients, apiBindPatientToUser, apiToggleUserStatus } from "@/lib/api";
+import { apiAdminStats, apiAdminUsers, apiAdminLogs, apiCreatePatient, apiAdminGetPatients, apiBindPatientToUser, apiToggleUserStatus } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import NewUserModal from "@/components/NewUserModal";
 
@@ -67,7 +67,7 @@ export default function AdminPage() {
       const [s, u, p] = await Promise.all([
         apiAdminStats().catch(() => null),
         apiAdminUsers().catch(() => []),
-        apiGetPatients().catch(() => []),
+        apiAdminGetPatients().catch(() => []),
       ]);
       if (s) setStats(s);
       setUsers(u ?? []);
