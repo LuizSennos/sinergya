@@ -317,37 +317,95 @@ export default function PatientPage() {
   return (
     <div className="flex flex-col h-full bg-white" style={{ minHeight: 0 }}>
 
-      {/* Header — mobile: limpo com logo+nome+avatar | desktop: completo */}
-      <div className="flex-shrink-0 bg-white border-b border-slate-100">
+     {/* Mobile header + Tabs Premium */}
+<div className="md:hidden sticky top-0 z-30 bg-white border-b border-slate-100">
 
-        {/* Mobile header */}
-        <div className="md:hidden px-4 py-3 flex items-center gap-3 sticky top-0 z-20"
-          style={{ background: "rgba(247,251,249,0.98)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
-          {/* Hamburguer — aciona o sidebar do layout pai via evento customizado */}
-          <button onClick={() => window.dispatchEvent(new CustomEvent("open-sidebar"))}
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition active:scale-95"
-            style={{ background: "rgba(30,140,104,0.08)" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2.5">
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <line x1="3" y1="12" x2="21" y2="12"/>
-              <line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
+  {/* Header */}
+  <div
+    className="px-4 py-3 flex items-center gap-3"
+    style={{
+      background: "rgba(247,251,249,0.98)",
+      backdropFilter: "blur(12px)",
+      WebkitBackdropFilter: "blur(12px)"
+    }}
+  >
+    <button
+      onClick={() => window.dispatchEvent(new CustomEvent("open-sidebar"))}
+      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition active:scale-95"
+      style={{ background: "rgba(30,140,104,0.08)" }}
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2.5">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+
+    <div className="flex items-center gap-2 flex-1 min-w-0">
+      <div
+        className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0"
+        style={{ background: BRAND_GRADIENT }}
+      >
+        {patient.name?.[0]?.toUpperCase()}
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-bold text-slate-900 truncate leading-tight">
+          {patient.name}
+        </p>
+        {patient.specialties && (
+          <p className="text-[10px] text-slate-400 truncate">
+            {patient.specialties}
+          </p>
+        )}
+      </div>
+    </div>
+
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+      style={{ background: "rgba(30,140,104,0.12)", color: "#1e8c68" }}
+    >
+      {user.name?.[0]?.toUpperCase()}
+    </div>
+  </div>
+
+  {/* Tabs estilo premium */}
+  <div className="px-3 pb-2 bg-white">
+    <div className="bg-slate-100 p-1 rounded-2xl flex gap-1 overflow-x-auto">
+
+      {tabs.map(tab => {
+        const active = activeTab === tab.key;
+
+        return (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className="relative flex-1 whitespace-nowrap px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-200 active:scale-95"
+            style={{
+              background: active ? "white" : "transparent",
+              color: active ? "#1e8c68" : "#64748b",
+              boxShadow: active ? "0 2px 6px rgba(0,0,0,0.06)" : "none"
+            }}
+          >
+            {tab.label.replace("Grupo ", "")}
+
+            {tab.count !== undefined && tab.count > 0 && (
+              <span
+                className="ml-1 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold rounded-full"
+                style={{
+                  background: active ? "#1e8c68" : "#e2e8f0",
+                  color: active ? "white" : "#64748b"
+                }}
+              >
+                {tab.count}
+              </span>
+            )}
           </button>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0"
-              style={{ background: BRAND_GRADIENT }}>
-              {patient.name?.[0]?.toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-slate-900 truncate leading-tight">{patient.name}</p>
-              {patient.specialties && <p className="text-[10px] text-slate-400 truncate">{patient.specialties}</p>}
-            </div>
-          </div>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-            style={{ background: "rgba(30,140,104,0.12)", color: "#1e8c68" }}>
-            {user.name?.[0]?.toUpperCase()}
-          </div>
-        </div>
+        );
+      })}
+
+    </div>
+  </div>
+</div>
 
         {/* Desktop header */}
         <div className="hidden md:flex px-8 py-4 items-center justify-between">
@@ -657,40 +715,6 @@ export default function PatientPage() {
           </div>
         )}
       </div>
-
-      {/* Tab bar mobile — fixa no rodapé */}
-      <div className="md:hidden flex-shrink-0 border-t border-slate-100 bg-white"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="flex">
-          {tabs.map(tab => {
-            const icons: Record<string, React.ReactNode> = {
-              assistencial: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-              tecnico:      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
-              diario:       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
-              tarefas:      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
-            };
-            const active = activeTab === tab.key;
-            return (
-              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className="flex-1 flex flex-col items-center gap-0.5 py-2.5 relative transition-colors"
-                style={{ color: active ? "#1e8c68" : "#94a3b8" }}>
-                {icons[tab.key]}
-                <span className="text-[9px] font-semibold">{tab.label.replace("Grupo ", "")}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className="absolute top-1.5 right-[calc(50%-14px)] w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center text-white"
-                    style={{ background: "#1e8c68" }}>
-                    {tab.count}
-                  </span>
-                )}
-                {active && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
-                    style={{ background: "#1e8c68" }} />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+      </div>    
   );
 }
