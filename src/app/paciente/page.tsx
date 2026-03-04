@@ -517,7 +517,13 @@ export default function PacientePage() {
                 : msg.content}
             </p>
           )}
-          <MessageAttachment msg={msg} own={own} patientId={patient?.id ?? ""} />
+          {patient?.id && (
+  <MessageAttachment 
+    msg={msg} 
+    own={own} 
+    patientId={patient.id} 
+  />
+)}
         </div>
       </div>
 
