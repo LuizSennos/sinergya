@@ -68,7 +68,8 @@ export async function apiToggleUserStatus(userId: string, isActive: boolean) {
   return request(`/users/${userId}/status`, { method: "PATCH", body: JSON.stringify({ is_active: isActive }) });
 }
 
-export async function apiGetPatients() { return request<any[]>("/patients/"); }
+// ── Pacientes ─────────────────────────────────────────────────────────────────
+export async function apiGetPatients() { return request<any[]>("/patients/admin-list"); }
 export async function apiGetPatient(id: string) { return request<any>(`/patients/${id}`); }
 export async function apiGetMyPatient() { return request<any>("/patients/me"); }
 export async function apiCreatePatient(data: any) { return request("/patients/", { method: "POST", body: JSON.stringify(data) }); }
@@ -76,7 +77,7 @@ export async function apiBindPatientToUser(patientId: string, userId: string) {
   return request(`/patients/${patientId}/bind-user?user_id=${userId}`, { method: "PATCH" });
 }
 
-// ── Mensagens ── URL corrigida para /messages/{patientId}/{context}
+// ── Mensagens ─────────────────────────────────────────────────────────────────
 export async function apiGetMessages(patientId: string, context: "assistencial" | "tecnico") {
   return request<any[]>(`/messages/${patientId}/${context}`);
 }
@@ -92,7 +93,6 @@ export async function apiUploadFile(file: File, patientId: string, group: string
   const res = await fetch(`${API_URL}/upload/`, {
     method: "POST",
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    // ⚠️ SEM "Content-Type" aqui — o browser define automaticamente com o boundary
     body: formData,
   });
   if (!res.ok) {
@@ -105,38 +105,51 @@ export async function apiSendMessageWithAttachment(
   patientId: string,
   context: "assistencial" | "tecnico",
   content: string,
-  attachment: { url: string; attachment_type: string; attachment_name: string; attachment_size: number; attachment_mime: string; }
+  attachment: {
+    url: string;
+    storage_path: string;       // path permanente no bucket — essencial para renovar URL
+    attachment_type: string;
+    attachment_name: string;
+    attachment_size: number;
+    attachment_mime: string;
+  }
 ) {
   return request("/messages/", {
     method: "POST",
     body: JSON.stringify({
-      patient_id:      patientId,
+      patient_id:              patientId,
       context,
-      content:         content || null,
-      attachment_url:  attachment.url,
-      attachment_type: attachment.attachment_type,
-      attachment_name: attachment.attachment_name,
-      attachment_size: attachment.attachment_size,
-      attachment_mime: attachment.attachment_mime,
+      content:                 content || null,
+      attachment_url:          attachment.url,
+      attachment_storage_path: attachment.storage_path,  // persiste o path permanente
+      attachment_type:         attachment.attachment_type,
+      attachment_name:         attachment.attachment_name,
+      attachment_size:         attachment.attachment_size,
+      attachment_mime:         attachment.attachment_mime,
     }),
   });
 }
 
+// ── Diário ────────────────────────────────────────────────────────────────────
 export async function apiGetDiary(patientId: string) { return request<any[]>(`/diary/${patientId}`); }
 export async function apiCreateDiaryEntry(patientId: string, content: string) { return request("/diary/", { method: "POST", body: JSON.stringify({ patient_id: patientId, content }) }); }
 
+// ── Tarefas ───────────────────────────────────────────────────────────────────
 export async function apiGetTasks(patientId: string) { return request<any[]>(`/tasks/${patientId}`); }
 export async function apiCreateTask(patientId: string, title: string, description?: string) { return request("/tasks/", { method: "POST", body: JSON.stringify({ patient_id: patientId, title, description }) }); }
 export async function apiMarkTaskDone(taskId: string, isDone: boolean) { return request(`/tasks/${taskId}/done`, { method: "PATCH", body: JSON.stringify({ is_done: isDone }) }); }
 
+// ── Grupos ────────────────────────────────────────────────────────────────────
 export async function apiBindUserToPatient(patientId: string, userId: string) { return request("/groups/", { method: "POST", body: JSON.stringify({ patient_id: patientId, user_id: userId }) }); }
 
+// ── Admin ─────────────────────────────────────────────────────────────────────
 export async function apiAdminStats() { return request<any>("/admin/stats"); }
 export async function apiAdminUsers() { return request<any[]>("/users/"); }
 export async function apiAdminLogs() { return request<any[]>("/admin/audit-logs"); }
 
-export async function apiGetSignedUrl(storagePath: string) {
+// ── Upload / URL assinada ─────────────────────────────────────────────────────
+export async function apiGetSignedUrl(storagePath: string, patientId: string) {
   return request<{ url: string }>(
-    `/signed-url?storage_path=${encodeURIComponent(storagePath)}`
+    `/upload/signed-url?storage_path=${encodeURIComponent(storagePath)}&patient_id=${encodeURIComponent(patientId)}`
   );
 }
