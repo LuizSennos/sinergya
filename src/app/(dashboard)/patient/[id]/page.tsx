@@ -317,47 +317,70 @@ export default function PatientPage() {
   return (
     <div className="flex flex-col h-full bg-white">
 
-      {/* Header */}
-      <div className="px-6 md:px-8 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0"
-            style={{ background: BRAND_GRADIENT }}>
-            {patient.name?.[0]?.toUpperCase()}
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-lg font-bold text-slate-900 tracking-tight">{patient.name}</h1>
-              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wide">Ativo</span>
+      {/* Header — mobile: limpo com logo+nome+avatar | desktop: completo */}
+      <div className="flex-shrink-0 bg-white border-b border-slate-100">
+
+        {/* Mobile header */}
+        <div className="md:hidden px-4 py-3 flex items-center justify-between"
+          style={{ background: "rgba(247,251,249,0.97)", backdropFilter: "blur(12px)" }}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
+              style={{ background: BRAND_GRADIENT }}>
+              {patient.name?.[0]?.toUpperCase()}
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">{patient.specialties}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900 truncate leading-tight">{patient.name}</p>
+              {patient.specialties && <p className="text-[10px] text-slate-400 truncate">{patient.specialties}</p>}
+            </div>
+          </div>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+            style={{ background: "rgba(30,140,104,0.12)", color: "#1e8c68" }}>
+            {user.name?.[0]?.toUpperCase()}
           </div>
         </div>
-        <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-          style={{ background: "rgba(30,140,104,0.08)", color: "#1e8c68" }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          Dados protegidos (LGPD)
-        </span>
-      </div>
 
-      {/* Abas */}
-      <div className="px-4 md:px-6 flex gap-0.5 border-b border-slate-100 bg-white sticky top-0 z-10 overflow-x-auto flex-shrink-0">
-        {tabs.map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-3 text-xs font-semibold transition-all border-b-2 flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === tab.key ? "border-sinergya-green text-sinergya-green" : "border-transparent text-slate-400 hover:text-slate-600"
-            }`}>
-            {tab.label}
-            {tab.count !== undefined && tab.count > 0 && (
-              <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
-                style={{ background: activeTab === tab.key ? "#1e8c68" : "#e2e8f0", color: activeTab === tab.key ? "white" : "#64748b" }}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+        {/* Desktop header */}
+        <div className="hidden md:flex px-8 py-4 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0"
+              style={{ background: BRAND_GRADIENT }}>
+              {patient.name?.[0]?.toUpperCase()}
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight">{patient.name}</h1>
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wide">Ativo</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">{patient.specialties}</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+            style={{ background: "rgba(30,140,104,0.08)", color: "#1e8c68" }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Dados protegidos (LGPD)
+          </span>
+        </div>
+
+        {/* Abas desktop */}
+        <div className="hidden md:flex px-6 gap-0.5 border-t border-slate-100">
+          {tabs.map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-3 text-xs font-semibold transition-all border-b-2 flex items-center gap-1.5 whitespace-nowrap ${
+                activeTab === tab.key ? "border-sinergya-green text-sinergya-green" : "border-transparent text-slate-400 hover:text-slate-600"
+              }`}>
+              {tab.label}
+              {tab.count !== undefined && tab.count > 0 && (
+                <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                  style={{ background: activeTab === tab.key ? "#1e8c68" : "#e2e8f0", color: activeTab === tab.key ? "white" : "#64748b" }}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Conteúdo */}
@@ -618,6 +641,40 @@ export default function PatientPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Tab bar mobile — fixa no rodapé */}
+      <div className="md:hidden flex-shrink-0 border-t border-slate-100 bg-white"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="flex">
+          {tabs.map(tab => {
+            const icons: Record<string, React.ReactNode> = {
+              assistencial: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+              tecnico:      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+              diario:       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+              tarefas:      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
+            };
+            const active = activeTab === tab.key;
+            return (
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                className="flex-1 flex flex-col items-center gap-0.5 py-2.5 relative transition-colors"
+                style={{ color: active ? "#1e8c68" : "#94a3b8" }}>
+                {icons[tab.key]}
+                <span className="text-[9px] font-semibold">{tab.label.replace("Grupo ", "")}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className="absolute top-1.5 right-[calc(50%-14px)] w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center text-white"
+                    style={{ background: "#1e8c68" }}>
+                    {tab.count}
+                  </span>
+                )}
+                {active && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
+                    style={{ background: "#1e8c68" }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
