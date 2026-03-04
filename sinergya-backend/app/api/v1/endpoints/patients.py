@@ -14,10 +14,8 @@ router = APIRouter()
 
 def check_patient_access(patient_id: str, current_user: User, db: Session):
     """Verifica se o usuário tem acesso ao paciente."""
-    # Admin não acessa dados clínicos (LGPD)
     if current_user.role == UserRole.admin:
         raise HTTPException(status_code=403, detail="Administradores não acessam dados clínicos.")
-    # Paciente/responsável só acessa o próprio registro
     if current_user.role in [UserRole.paciente, UserRole.responsavel]:
         patient = db.query(Patient).filter(
             Patient.id == patient_id,
@@ -26,7 +24,6 @@ def check_patient_access(patient_id: str, current_user: User, db: Session):
         if not patient:
             raise HTTPException(status_code=403, detail="Acesso negado.")
         return
-    # Profissional precisa estar vinculado ao grupo
     member = db.query(GroupMember).filter(
         GroupMember.patient_id == patient_id,
         GroupMember.user_id == current_user.id,
@@ -40,7 +37,6 @@ def get_my_patient(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna o registro de paciente vinculado ao usuário logado."""
     if current_user.role not in [UserRole.paciente, UserRole.responsavel]:
         raise HTTPException(status_code=403, detail="Apenas pacientes e responsáveis.")
     patient = db.query(Patient).filter(Patient.user_id == current_user.id).first()
@@ -48,12 +44,32 @@ def get_my_patient(
         raise HTTPException(status_code=404, detail="Nenhum registro de paciente vinculado.")
     return patient
 
+# ── Admin list — deve ficar ANTES de /{patient_id} para não ser capturado como UUID ──
+@router.get("/admin-list", summary="Listar pacientes (admin)")
+def list_patients_admin(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Lista pacientes para o painel admin. Retorna apenas campos operacionais, sem dados clínicos (LGPD)."""
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Acesso restrito a administradores.")
+    patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
+    return [
+        {
+            "id":         str(p.id),
+            "name":       p.name,
+            "user_id":    str(p.user_id) if p.user_id else None,
+            "is_active":  p.is_active,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+        }
+        for p in patients
+    ]
+
 @router.get("/", response_model=List[PatientOut], summary="Listar pacientes")
 def list_patients(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Admin não acessa dados clínicos (LGPD)
     if current_user.role == UserRole.admin:
         raise HTTPException(status_code=403, detail="Administradores não acessam dados clínicos.")
     if current_user.role in [UserRole.paciente, UserRole.responsavel]:
@@ -61,7 +77,6 @@ def list_patients(
             Patient.user_id == current_user.id,
             Patient.is_active == True
         ).all()
-    # Profissional: retorna só pacientes do seu grupo
     member_patient_ids = db.query(GroupMember.patient_id).filter(
         GroupMember.user_id == current_user.id,
         GroupMember.is_active == True
@@ -103,7 +118,6 @@ def bind_user_to_patient(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Vincula uma conta de usuário (paciente/responsável) ao registro do paciente."""
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=403, detail="Apenas administradores.")
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
