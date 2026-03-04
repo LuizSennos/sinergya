@@ -47,7 +47,8 @@ class MessageCreate(BaseModel):
     attachment_type: Optional[AttachmentType] = None
     attachment_name: Optional[str] = None
     attachment_size: Optional[int] = None
-    attachment_mime: Optional[str] = None
+    attachment_mime:         Optional[str] = None
+    attachment_storage_path: Optional[str] = None
 
 
 class MessageOut(BaseModel):
@@ -61,8 +62,9 @@ class MessageOut(BaseModel):
     attachment_type: Optional[str]
     attachment_name: Optional[str]
     attachment_size: Optional[int]
-    attachment_mime: Optional[str]
-    created_at:      str
+    attachment_mime:         Optional[str]
+    attachment_storage_path: Optional[str]
+    created_at:              str
 
     class Config:
         from_attributes = True
@@ -145,8 +147,9 @@ def serialize_message(msg: Message) -> dict:
         "attachment_type": msg.attachment_type.value if msg.attachment_type else None,
         "attachment_name": msg.attachment_name,
         "attachment_size": msg.attachment_size,
-        "attachment_mime": msg.attachment_mime,
-        "created_at":      msg.created_at.isoformat(),
+        "attachment_mime":         msg.attachment_mime,
+        "attachment_storage_path": getattr(msg, "attachment_storage_path", None),
+        "created_at":              msg.created_at.isoformat(),
     }
 
 
@@ -180,7 +183,8 @@ def send_message(
         attachment_type = payload.attachment_type,
         attachment_name = payload.attachment_name,
         attachment_size = payload.attachment_size,
-        attachment_mime = payload.attachment_mime,
+        attachment_mime         = payload.attachment_mime,
+        attachment_storage_path = payload.attachment_storage_path,
     )
     db.add(msg)
     db.commit()

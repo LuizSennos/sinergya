@@ -32,7 +32,8 @@ class Message(Base):
     attachment_type   = Column(SAEnum(AttachmentType), nullable=True)
     attachment_name   = Column(Text, nullable=True)
     attachment_size   = Column(Integer, nullable=True)   # bytes
-    attachment_mime   = Column(Text, nullable=True)
+    attachment_mime         = Column(Text, nullable=True)
+    attachment_storage_path = Column(Text, nullable=True)  # path permanente no bucket para renovar URL
 
     created_at    = Column(DateTime, default=datetime.utcnow)
 
