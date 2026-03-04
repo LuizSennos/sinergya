@@ -26,21 +26,20 @@ function formatFileSize(bytes: number) {
 }
 
 // ── Renderiza anexo dentro de uma mensagem ───────────────────────────────────
-function MessageAttachment({ msg, own }: { msg: any; own: boolean }) {
+function MessageAttachment({ msg, own, patientId }: { msg: any; own: boolean; patientId: string }) {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!msg.attachment_url) return;
-    if (msg.storage_path) {
-      apiGetSignedUrl(msg.storage_path)
+    if (msg.attachment_storage_path) {
+      apiGetSignedUrl(msg.attachment_storage_path, patientId)
         .then(r => setUrl(r.url))
         .catch(() => setUrl(msg.attachment_url));
     } else {
       setUrl(msg.attachment_url);
     }
-  }, [msg.attachment_url, msg.storage_path]);
+  }, [msg.attachment_url, msg.attachment_storage_path, patientId]);
 
-  if (!msg.attachment_url) return null;
   if (!url) return (
     <div className="mt-1 w-8 h-8 flex items-center justify-center">
       <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2">
@@ -518,7 +517,7 @@ export default function PacientePage() {
                 : msg.content}
             </p>
           )}
-          <MessageAttachment msg={msg} own={own} />
+          <MessageAttachment msg={msg} own={own} patientId={patient?.id ?? ""} />
         </div>
       </div>
 
