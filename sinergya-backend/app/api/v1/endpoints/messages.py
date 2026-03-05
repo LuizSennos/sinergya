@@ -116,8 +116,13 @@ def refresh_signed_url(storage_path: str) -> Optional[str]:
     except Exception:
         return None
 
-
 def serialize_message(msg: Message) -> dict:
+    url = msg.attachment_url
+    # Renova URL se tiver storage_path salvo
+    if msg.attachment_storage_path:
+        refreshed = refresh_signed_url(msg.attachment_storage_path)
+        if refreshed:
+            url = refreshed
     return {
         "id":              str(msg.id),
         "patient_id":      str(msg.patient_id),
@@ -125,7 +130,7 @@ def serialize_message(msg: Message) -> dict:
         "author_name":     msg.author.name if msg.author else None,
         "context":         msg.context.value,
         "content":         msg.content,
-        "attachment_url":  msg.attachment_url,
+        "attachment_url":  url,  # ← aqui, não msg.attachment_url
         "attachment_type": msg.attachment_type.value if msg.attachment_type else None,
         "attachment_name": msg.attachment_name,
         "attachment_size": msg.attachment_size,
@@ -133,8 +138,6 @@ def serialize_message(msg: Message) -> dict:
         "attachment_storage_path": getattr(msg, "attachment_storage_path", None),
         "created_at":              msg.created_at.isoformat(),
     }
-
-
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 # IMPORTANTE: rotas estáticas SEMPRE antes das dinâmicas no FastAPI
 
