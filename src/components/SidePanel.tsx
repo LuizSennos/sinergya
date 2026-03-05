@@ -40,12 +40,15 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
   const [idioma, setIdioma] = useState("pt-BR");
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
- useEffect(() => {
-  apiGetUnreadCounts().then(setUnreadCounts).catch(() => {});
-  const interval = setInterval(() => {
-    apiGetUnreadCounts().then(setUnreadCounts).catch(() => {});
-  }, 15000); // atualiza a cada 15s
-  return () => clearInterval(interval);
+useEffect(() => {
+  const fetch = () => apiGetUnreadCounts().then(setUnreadCounts).catch(() => {});
+  fetch();
+  const interval = setInterval(fetch, 15000);
+  window.addEventListener("refresh-unread", fetch);
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener("refresh-unread", fetch);
+  };
 }, []);
 
   const filtered = patients.filter(p =>

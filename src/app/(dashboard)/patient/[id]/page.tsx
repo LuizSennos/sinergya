@@ -275,14 +275,18 @@ export default function PatientPage() {
 const loadTab = useCallback(async (tab: Tab) => {
   if (!id) return;
   try {
-    if (tab === "assistencial") {
-      setMessages(await apiGetMessages(id, "assistencial"));
-      apiMarkAsRead(id, "assistencial").catch(() => {}); // ← adiciona
-    }
-    else if (tab === "tecnico") {
-      setMessages(await apiGetMessages(id, "tecnico"));
-      apiMarkAsRead(id, "tecnico").catch(() => {}); // ← adiciona
-    }
+   if (tab === "assistencial") {
+  setMessages(await apiGetMessages(id, "assistencial"));
+  apiMarkAsRead(id, "assistencial").then(() => {
+    window.dispatchEvent(new CustomEvent("refresh-unread"));
+  }).catch(() => {});
+}
+else if (tab === "tecnico") {
+  setMessages(await apiGetMessages(id, "tecnico"));
+  apiMarkAsRead(id, "tecnico").then(() => {
+    window.dispatchEvent(new CustomEvent("refresh-unread"));
+  }).catch(() => {});
+}
     else if (tab === "diario")  setDiary(await apiGetDiary(id));
     else if (tab === "tarefas") setTasks(await apiGetTasks(id));
   } catch (err) { console.error(err); }
@@ -629,21 +633,7 @@ const loadTab = useCallback(async (tab: Tab) => {
               </div>
             )}
 
-            {/* Card mensagens */}
-            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border"
-              style={{ background: "rgba(30,140,104,0.04)", borderColor: "rgba(30,140,104,0.15)" }}>
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgba(30,140,104,0.12)" }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2.5">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-400 leading-none mb-0.5">Mensagens</p>
-                <p className="text-xs font-bold leading-none" style={{ color: "#1e8c68" }}>{messages.length}</p>
-              </div>
-            </div>
-
+           
             {/* LGPD badge */}
             <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border"
               style={{ background: "rgba(30,140,104,0.04)", borderColor: "rgba(30,140,104,0.15)", color: "#1e8c68" }}>
