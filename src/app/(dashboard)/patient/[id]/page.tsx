@@ -259,7 +259,7 @@ export default function PatientPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [recording, setRecording]               = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [wallpaper, setWallpaper]     = useState("topo");
+  const [wallpaper, setWallpaper] = useState("botanical");
   const [showWallpaper, setShowWallpaper] = useState(false);
   const [isDragOver, setIsDragOver]   = useState(false);
 
@@ -304,6 +304,20 @@ export default function PatientPage() {
   useEffect(() => {
     if (activeTab === "assistencial" || activeTab === "tecnico") setTimeout(scrollToBottom, 100);
   }, [messages, activeTab]);
+
+  // Carrega wallpaper salvo do usuário
+  useEffect(() => {
+    if ((user as any)?.wallpaper_preference) {
+      setWallpaper((user as any).wallpaper_preference);
+    }
+  }, [user]);
+
+  // Salva wallpaper no backend
+  async function handleWallpaperChange(id: string) {
+    setWallpaper(id);
+    try { await apiUpdatePreferences({ wallpaper: id }); }
+    catch (e) { console.error("Falha ao salvar wallpaper"); }
+  }
 
   function handleDragOver(e: React.DragEvent) { e.preventDefault(); setIsDragOver(true); }
   function handleDragLeave(e: React.DragEvent) {
