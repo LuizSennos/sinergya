@@ -184,3 +184,15 @@ export async function apiGetUnreadCounts() {
 export async function apiMarkAsRead(patientId: string, context: "assistencial" | "tecnico") {
   return request(`/messages/${patientId}/${context}/read`, { method: "PATCH" });
 }
+
+export async function apiEditMessage(messageId: string, content: string) {
+  return request(`/messages/${messageId}/edit`, {
+    method: "PATCH",
+    body: JSON.stringify({ content }),
+  });
+}
+
+
+export async function apiDeleteMessage(messageId: string) {
+  return request(`/messages/${messageId}`, { method: "DELETE" });
+}

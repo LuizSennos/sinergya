@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   apiGetPatient, apiGetMessages, apiSendMessage,
   apiGetDiary, apiGetTasks, apiMarkTaskDone, apiCreateTask,
-  apiUploadFile, apiSendMessageWithAttachment, apiUpdatePreferences, apiMarkAsRead
+  apiUploadFile, apiSendMessageWithAttachment, apiUpdatePreferences, apiMarkAsRead, apiEditMessage, apiDeleteMessage
 } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
@@ -262,6 +262,10 @@ export default function PatientPage() {
   const [wallpaper, setWallpaper] = useState("botanical");
   const [showWallpaper, setShowWallpaper] = useState(false);
   const [isDragOver, setIsDragOver]   = useState(false);
+  const [editingId, setEditingId]     = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [menuMsgId, setMenuMsgId]     = useState<string | null>(null);
+  const longPressTimer                = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const messagesEndRef    = useRef<HTMLDivElement>(null);
   const textareaRef       = useRef<HTMLTextAreaElement>(null);
@@ -412,6 +416,32 @@ else if (tab === "tecnico") {
       setNewTask(""); setNewTaskDesc(""); await loadTab("tarefas");
     } catch (err: any) { alert(err.message); }
   }
+
+  async function handleDeleteMessage(msgId: string) {
+  if (!confirm("Deletar esta mensagem?")) return;
+  try {
+    await apiDeleteMessage(msgId);
+    await loadTab(activeTab);
+  } catch (e) { console.error(e); }
+}
+
+async function handleEditSave(msgId: string) {
+  if (!editingText.trim()) return;
+  try {
+    await apiEditMessage(msgId, editingText);
+    setEditingId(null);
+    setEditingText("");
+    await loadTab(activeTab);
+  } catch (e) { console.error(e); }
+}
+
+function handleLongPressStart(msgId: string) {
+  longPressTimer.current = setTimeout(() => setMenuMsgId(msgId), 500);
+}
+
+function handleLongPressEnd() {
+  if (longPressTimer.current) clearTimeout(longPressTimer.current);
+}
 
   const insertEmoji = (emoji: string) => {
     setNewMessage(prev => prev + emoji);
@@ -769,56 +799,120 @@ else if (tab === "tecnico") {
               )}
 
               {filteredMessages.map((msg: any) => {
-                const own = isOwnMessage(msg);
-                const hasText = !!msg.content?.trim();
-                const hasAttachment = !!msg.attachment_url;
-                if (!hasText && !hasAttachment) return null;
+  const own = isOwnMessage(msg);
+  const hasText = !!msg.content?.trim();
+  const hasAttachment = !!msg.attachment_url;
+  const isEditing = editingId === msg.id;
+  const showMenu = menuMsgId === msg.id;
+  if (!hasText && !hasAttachment) return null;
 
-                return (
-                  <div key={msg.id} className={`flex items-end gap-2 ${own ? "justify-end" : "justify-start"}`}>
-                    {!own && (
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mb-4"
-                        style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
-                        {msg.author_name?.[0]?.toUpperCase() ?? "?"}
-                      </div>
-                    )}
+  return (
+    <div key={msg.id} className={`flex items-end gap-2 ${own ? "justify-end" : "justify-start"}`}
+      onMouseLeave={() => setMenuMsgId(null)}>
+      {!own && (
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mb-4"
+          style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
+          {msg.author_name?.[0]?.toUpperCase() ?? "?"}
+        </div>
+      )}
 
-                    <div className={`flex flex-col gap-0.5 ${own ? "items-end max-w-[72%]" : "items-start max-w-[72%]"}`}>
-                      <div className={`flex items-center gap-1.5 px-1 ${own ? "flex-row-reverse" : ""}`}>
-                        <span className="text-[10px] font-semibold" style={{ color: isDarkWallpaper ? "#94a3b8" : "#64748b" }}>
-                          {own ? "Você" : msg.author_name}
-                        </span>
-                        <span className="text-[9px]" style={{ color: isDarkWallpaper ? "#475569" : "#cbd5e1" }}>
-                          {formatTime(msg.created_at)}
-                        </span>
-                      </div>
+      <div className={`flex flex-col gap-0.5 ${own ? "items-end max-w-[72%]" : "items-start max-w-[72%]"}`}>
+        <div className={`flex items-center gap-1.5 px-1 ${own ? "flex-row-reverse" : ""}`}>
+          <span className="text-[10px] font-semibold" style={{ color: isDarkWallpaper ? "#94a3b8" : "#64748b" }}>
+            {own ? "Você" : msg.author_name}
+          </span>
+          <span className="text-[9px]" style={{ color: isDarkWallpaper ? "#475569" : "#cbd5e1" }}>
+            {formatTime(msg.created_at)}
+          </span>
+          {msg.edited && (
+            <span className="text-[9px] italic" style={{ color: isDarkWallpaper ? "#475569" : "#cbd5e1" }}>editado</span>
+          )}
+        </div>
 
-                      {hasText ? (
-                        <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full ${
-                          own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"
-                        }`} style={getBubbleStyle(own)}>
-                          <p className="break-words">{msg.content}</p>
-                          {hasAttachment && <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />}
-                        </div>
-                      ) : (
-                        <div style={getAttachmentOnlyStyle(own)}
-                          className={own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"}>
-                          <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />
-                        </div>
-                      )}
-                    </div>
+        {/* Bubble com menu */}
+        <div className="relative group"
+          onMouseEnter={() => setMenuMsgId(msg.id)}
+          onTouchStart={() => handleLongPressStart(msg.id)}
+          onTouchEnd={handleLongPressEnd}
+          onTouchMove={handleLongPressEnd}>
 
-                    {own && (
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mb-4"
-                        style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
-                        {msg.author_name?.[0]?.toUpperCase() ?? "?"}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
+          {/* Botões hover — aparecem ao lado do bubble */}
+          {showMenu && !isEditing && (
+            <div className={`absolute top-0 flex items-center gap-1 z-10 ${own ? "right-full mr-2" : "left-full ml-2"}`}>
+              <button onClick={() => { setEditingId(msg.id); setEditingText(msg.content ?? ""); setMenuMsgId(null); }}
+                className="w-7 h-7 rounded-full flex items-center justify-center shadow-md transition hover:scale-110"
+                style={{ background: "white", border: "1px solid #e2e8f0" }}
+                title="Editar">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button onClick={() => handleDeleteMessage(msg.id)}
+                className="w-7 h-7 rounded-full flex items-center justify-center shadow-md transition hover:scale-110"
+                style={{ background: "white", border: "1px solid #fecaca" }}
+                title="Deletar">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+              </button>
             </div>
+          )}
+
+          {/* Bubble normal ou modo edição */}
+          {isEditing ? (
+            <div className="flex flex-col gap-2 min-w-[220px]">
+              <textarea
+                autoFocus
+                value={editingText}
+                onChange={e => setEditingText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleEditSave(msg.id); }
+                  if (e.key === "Escape") { setEditingId(null); setEditingText(""); }
+                }}
+                className="px-3.5 py-2.5 text-sm rounded-2xl border outline-none resize-none"
+                style={{ borderColor: isTecnico ? "rgba(79,70,229,0.3)" : "rgba(30,140,104,0.3)", minHeight: 60 }}
+              />
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => { setEditingId(null); setEditingText(""); }}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 transition">
+                  Cancelar
+                </button>
+                <button onClick={() => handleEditSave(msg.id)}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition"
+                  style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
+                  Salvar
+                </button>
+              </div>
+            </div>
+          ) : hasText ? (
+            <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full ${
+              own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"
+            }`} style={getBubbleStyle(own)}>
+              <p className="break-words">{msg.content}</p>
+              {hasAttachment && <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />}
+            </div>
+          ) : (
+            <div style={getAttachmentOnlyStyle(own)}
+              className={own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"}>
+              <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {own && (
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mb-4"
+          style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
+          {msg.author_name?.[0]?.toUpperCase() ?? "?"}
+        </div>
+      )}
+    </div>
+  );
+})}
 
             {/* Emoji picker */}
             {showEmoji && (

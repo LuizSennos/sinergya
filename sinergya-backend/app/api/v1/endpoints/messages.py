@@ -7,9 +7,10 @@ Endpoints de mensagens com suporte a anexos.
 import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel as PydanticBase
 from typing import Optional
 from supabase import create_client
+
 
 import uuid as uuid_lib
 from app.db.session import get_db
@@ -240,6 +241,44 @@ def mark_as_read(
         Message.author_id != current_user.id,
         Message.is_read == False
     ).update({"is_read": True})
+    db.commit()
+    return {"ok": True}
+
+
+class MessageEdit(PydanticBase):
+    content: str
+
+@router.patch("/{message_id}/edit")
+def edit_message(
+    message_id: str,
+    payload: MessageEdit,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    message_id = validate_uuid(message_id, "message_id")
+    msg = db.query(Message).filter(Message.id == message_id).first()
+    if not msg:
+        raise HTTPException(status_code=404, detail="Mensagem não encontrada.")
+    assert_linked(db, current_user, str(msg.patient_id))
+    if not payload.content.strip():
+        raise HTTPException(status_code=400, detail="Conteúdo não pode ser vazio.")
+    msg.content = payload.content.strip()
+    db.commit()
+    return serialize_message(msg)
+
+
+@router.delete("/{message_id}")
+def delete_message(
+    message_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    message_id = validate_uuid(message_id, "message_id")
+    msg = db.query(Message).filter(Message.id == message_id).first()
+    if not msg:
+        raise HTTPException(status_code=404, detail="Mensagem não encontrada.")
+    assert_linked(db, current_user, str(msg.patient_id))
+    db.delete(msg)
     db.commit()
     return {"ok": True}
 
