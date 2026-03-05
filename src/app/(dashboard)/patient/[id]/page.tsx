@@ -5,24 +5,69 @@ import { useParams, useRouter } from "next/navigation";
 import {
   apiGetPatient, apiGetMessages, apiSendMessage,
   apiGetDiary, apiGetTasks, apiMarkTaskDone, apiCreateTask,
-  apiUploadFile, apiSendMessageWithAttachment
+  apiUploadFile, apiSendMessageWithAttachment, apiUpdatePreferences
 } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
-// ── Constantes visuais ────────────────────────────────────────────────────────
-const BRAND_GRADIENT   = "linear-gradient(135deg, #1e8c68 0%, #2a7fc4 100%)";
+const BRAND_GRADIENT   = "linear-gradient(135deg, #166a50 0%, #1a5fa0 100%)";
 const TECNICO_GRADIENT = "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)";
 const EMOJIS = ["😊","😄","👍","❤️","🙏","💪","✅","⚠️","📋","💬","🔒","📝","🎯","💡","⏰","📅"];
 
+// ── SVG Wallpapers ────────────────────────────────────────────────────────────
+
+const TOPO_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cpath d='M120 80 Q180 40 260 70 Q340 100 380 160 Q420 220 390 290 Q360 360 290 380 Q220 400 160 370 Q100 340 80 270 Q60 200 90 140 Q105 110 120 80Z' stroke='white' stroke-width='1.2' fill='none' opacity='0.35'/%3E%3Cpath d='M140 100 Q195 65 265 92 Q330 118 365 175 Q398 232 370 295 Q342 355 278 372 Q215 388 158 360 Q102 330 85 264 Q70 200 98 148 Q118 120 140 100Z' stroke='white' stroke-width='1' fill='none' opacity='0.28'/%3E%3Cpath d='M165 125 Q210 98 268 118 Q322 138 350 190 Q376 242 350 298 Q324 350 268 362 Q212 374 163 348 Q116 320 103 264 Q91 210 116 165 Q138 138 165 125Z' stroke='white' stroke-width='0.9' fill='none' opacity='0.22'/%3E%3Cpath d='M190 155 Q226 134 272 150 Q314 166 336 208 Q356 250 334 294 Q312 336 268 344 Q224 352 186 328 Q150 304 143 260 Q137 218 158 185 Q172 165 190 155Z' stroke='white' stroke-width='0.8' fill='none' opacity='0.18'/%3E%3Cpath d='M215 185 Q242 170 275 182 Q306 194 320 224 Q333 254 316 285 Q299 315 268 320 Q238 325 212 306 Q187 287 184 256 Q181 226 198 205 Q206 193 215 185Z' stroke='white' stroke-width='0.7' fill='none' opacity='0.15'/%3E%3Cpath d='M-20 300 Q40 240 100 260 Q160 280 180 340 Q200 400 160 440 Q120 480 60 460 Q0 440 -20 380 Q-35 340 -20 300Z' stroke='white' stroke-width='1.1' fill='none' opacity='0.3'/%3E%3Cpath d='M5 320 Q55 268 108 285 Q158 302 175 352 Q190 400 155 432 Q120 462 70 445 Q22 428 5 378 Q-8 345 5 320Z' stroke='white' stroke-width='0.9' fill='none' opacity='0.22'/%3E%3Cpath d='M350 -20 Q430 20 460 100 Q490 180 450 250 Q410 320 340 340 Q280 355 240 310' stroke='white' stroke-width='1.1' fill='none' opacity='0.28'/%3E%3Cpath d='M370 10 Q440 48 465 120 Q488 192 450 255 Q415 315 348 332 Q292 345 255 305' stroke='white' stroke-width='0.9' fill='none' opacity='0.2'/%3E%3Cpath d='M100 420 Q150 390 200 410 Q250 430 260 480' stroke='white' stroke-width='0.9' fill='none' opacity='0.22'/%3E%3Cpath d='M115 435 Q158 408 202 426 Q244 444 252 488' stroke='white' stroke-width='0.7' fill='none' opacity='0.16'/%3E%3Cpath d='M55 200 Q65 185 75 195 Q65 205 55 200Z' stroke='white' stroke-width='1' fill='none' opacity='0.4'/%3E%3Cpath d='M60 210 Q55 190 65 185' stroke='white' stroke-width='0.8' fill='none' opacity='0.35'/%3E%3Cpath d='M55 200 Q48 185 58 180 Q62 190 55 200Z' stroke='white' stroke-width='1' fill='none' opacity='0.4'/%3E%3C/svg%3E")`;
+
+const BOTANICAL_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cpath d='M20 380 Q60 300 40 200 Q20 120 80 60' stroke='%231e8c68' stroke-width='1.2' fill='none' opacity='0.18'/%3E%3Cellipse cx='55' cy='280' rx='18' ry='9' transform='rotate(-30 55 280)' fill='%231e8c68' opacity='0.1'/%3E%3Cellipse cx='35' cy='230' rx='15' ry='7' transform='rotate(20 35 230)' fill='%231e8c68' opacity='0.08'/%3E%3Cellipse cx='60' cy='170' rx='20' ry='8' transform='rotate(-40 60 170)' fill='%231e8c68' opacity='0.1'/%3E%3Cellipse cx='45' cy='120' rx='14' ry='6' transform='rotate(15 45 120)' fill='%231e8c68' opacity='0.07'/%3E%3Cpath d='M380 20 Q340 80 360 180 Q380 260 320 340' stroke='%231e8c68' stroke-width='1' fill='none' opacity='0.15'/%3E%3Cellipse cx='350' cy='100' rx='16' ry='7' transform='rotate(40 350 100)' fill='%231e8c68' opacity='0.08'/%3E%3Cellipse cx='370' cy='160' rx='18' ry='8' transform='rotate(-20 370 160)' fill='%231e8c68' opacity='0.09'/%3E%3Cellipse cx='345' cy='240' rx='15' ry='6' transform='rotate(35 345 240)' fill='%231e8c68' opacity='0.07'/%3E%3Cpath d='M180 0 Q200 40 190 100' stroke='%231e8c68' stroke-width='0.8' fill='none' opacity='0.12'/%3E%3Cellipse cx='165' cy='50' rx='12' ry='5' transform='rotate(-25 165 50)' fill='%231e8c68' opacity='0.07'/%3E%3Cellipse cx='205' cy='75' rx='14' ry='6' transform='rotate(30 205 75)' fill='%231e8c68' opacity='0.08'/%3E%3C/svg%3E")`;
+
 const WALLPAPERS = [
-  { id: "default",  label: "Padrão",  bg: "#ffffff",                                         preview: "#ffffff" },
-  { id: "mint",     label: "Menta",   bg: "linear-gradient(160deg,#e8f7f0 0%,#f0faf7 100%)", preview: "#e8f7f0" },
-  { id: "sky",      label: "Céu",     bg: "linear-gradient(160deg,#e0f2fe 0%,#f0f9ff 100%)", preview: "#e0f2fe" },
-  { id: "lavender", label: "Lavanda", bg: "linear-gradient(160deg,#ede9fe 0%,#f5f3ff 100%)", preview: "#ede9fe" },
-  { id: "warm",     label: "Quente",  bg: "linear-gradient(160deg,#fef3c7 0%,#fffbeb 100%)", preview: "#fef3c7" },
-  { id: "rose",     label: "Rosa",    bg: "linear-gradient(160deg,#ffe4e6 0%,#fff1f2 100%)", preview: "#ffe4e6" },
-  { id: "stone",    label: "Pedra",   bg: "linear-gradient(160deg,#f1f5f9 0%,#f8fafc 100%)", preview: "#f1f5f9" },
-  { id: "dark",     label: "Escuro",  bg: "linear-gradient(160deg,#1e293b 0%,#0f172a 100%)", preview: "#1e293b" },
+  {
+    id: "topo",      label: "Topográfico", preview: "#a8d5bf",
+    style: { backgroundColor: "#a8d5bf", backgroundImage: TOPO_SVG, backgroundSize: "500px 500px" }
+  },
+  {
+    id: "botanical", label: "Botânico",    preview: "#f0f7f4",
+    style: { backgroundColor: "#f5faf7", backgroundImage: BOTANICAL_SVG, backgroundSize: "400px 400px" }
+  },
+  {
+    id: "default",   label: "Limpo",       preview: "#f8fafc",
+    style: { background: "#f8fafc" }
+  },
+  {
+    id: "bubbles",   label: "Bolhas",      preview: "#e0f2fe",
+    style: {
+      backgroundColor: "#e8f4fd",
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='40' cy='40' r='18' fill='%232a7fc4' fill-opacity='0.07'/%3E%3Ccircle cx='8' cy='8' r='5' fill='%232a7fc4' fill-opacity='0.05'/%3E%3Ccircle cx='72' cy='8' r='5' fill='%232a7fc4' fill-opacity='0.05'/%3E%3Ccircle cx='8' cy='72' r='5' fill='%232a7fc4' fill-opacity='0.05'/%3E%3Ccircle cx='72' cy='72' r='5' fill='%232a7fc4' fill-opacity='0.05'/%3E%3C/svg%3E")`,
+    }
+  },
+  {
+    id: "waves",     label: "Ondas",       preview: "#dcfce7",
+    style: {
+      backgroundColor: "#e8faf0",
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24' viewBox='0 0 120 24'%3E%3Cpath d='M0 12 Q30 2 60 12 Q90 22 120 12' stroke='%231e8c68' stroke-width='1.5' fill='none' opacity='0.13'/%3E%3C/svg%3E")`,
+      backgroundRepeat: "repeat",
+    }
+  },
+  {
+    id: "dots",      label: "Pontos",      preview: "#fef9c3",
+    style: {
+      backgroundColor: "#fffbeb",
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='2.5' fill='%23d97706' fill-opacity='0.13'/%3E%3C/svg%3E")`,
+    }
+  },
+  {
+    id: "grid",      label: "Grade",       preview: "#ede9fe",
+    style: {
+      backgroundColor: "#f5f3ff",
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0.5' y='0.5' width='39' height='39' fill='none' stroke='%237c3aed' stroke-opacity='0.08'/%3E%3C/svg%3E")`,
+    }
+  },
+  {
+    id: "dark",      label: "Escuro",      preview: "#1e293b",
+    style: {
+      backgroundColor: "#0f172a",
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='%23ffffff' fill-opacity='0.07'/%3E%3C/svg%3E")`,
+    }
+  },
 ];
 
 function formatDate(iso: string) {
@@ -43,39 +88,53 @@ function formatFileSize(bytes: number) {
 function MessageAttachment({ msg, isTecnico, own = false }: { msg: any; isTecnico: boolean; own?: boolean }) {
   if (!msg.attachment_url) return null;
   const { attachment_type: type, attachment_name: name, attachment_size: size } = msg;
-  const accent   = own ? "rgba(255,255,255,0.9)" : isTecnico ? "#4f46e5" : "#1e8c68";
-  const bubbleBg = own ? "rgba(255,255,255,0.15)" : isTecnico ? "rgba(79,70,229,0.07)" : "rgba(30,140,104,0.07)";
-  const border   = own ? "rgba(255,255,255,0.2)"  : isTecnico ? "rgba(79,70,229,0.15)" : "rgba(30,140,104,0.15)";
+
+  const displayName = (() => {
+    if (!name) return "arquivo";
+    const clean = name.replace(/^\d{10,}_/, "").replace(/_\d{10,}/, "");
+    return clean || name;
+  })();
 
   if (type === "image") {
     return (
       <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer"
-        className="block rounded-xl overflow-hidden mt-2 max-w-[220px] hover:opacity-90 transition-opacity shadow-sm">
-        <img src={msg.attachment_url} alt={name || "imagem"} className="w-full object-cover" style={{ maxHeight: 180 }} />
+        className="block rounded-xl overflow-hidden mt-1 max-w-[220px] hover:opacity-90 transition-opacity shadow-sm">
+        <img src={msg.attachment_url} alt={displayName} className="w-full object-cover" style={{ maxHeight: 200 }} />
       </a>
     );
   }
+
+  const ownBg     = "rgba(0,0,0,0.18)";
+  const ownBorder = "rgba(255,255,255,0.2)";
+  const otherBg   = isTecnico ? "rgba(79,70,229,0.07)" : "rgba(30,140,104,0.07)";
+  const otherBorder = isTecnico ? "rgba(79,70,229,0.15)" : "rgba(30,140,104,0.15)";
+  const accent    = own ? "white" : isTecnico ? "#4f46e5" : "#1e8c68";
+
   if (type === "audio") {
     return (
-      <div className="mt-2 rounded-xl px-3 py-2.5 max-w-[260px]"
-        style={{ background: bubbleBg, border: `1px solid ${border}` }}>
+      <div className="mt-1 rounded-xl px-3 py-2.5 max-w-[260px]"
+        style={{ background: own ? ownBg : otherBg, border: `1px solid ${own ? ownBorder : otherBorder}` }}>
         <div className="flex items-center gap-2 mb-2">
           <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: own ? "rgba(255,255,255,0.2)" : `${accent}22` }}>
+            style={{ background: own ? "rgba(255,255,255,0.25)" : `${accent}22` }}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill={accent}>
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
             </svg>
           </div>
-          <span className="text-[11px] font-medium" style={{ color: own ? "rgba(255,255,255,0.8)" : "#64748b" }}>Mensagem de voz</span>
+          <span className="text-[11px] font-semibold" style={{ color: own ? "rgba(255,255,255,0.9)" : "#64748b" }}>
+            Mensagem de voz
+          </span>
         </div>
-        <audio controls src={msg.attachment_url} className="w-full h-8" />
+        <audio controls src={msg.attachment_url} className="w-full h-8"
+          style={{ filter: own ? "invert(1) brightness(1.5)" : "none" }} />
       </div>
     );
   }
+
   return (
     <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer"
-      className="flex items-center gap-3 mt-2 px-3 py-2.5 rounded-xl max-w-[260px] hover:opacity-80 transition-opacity"
-      style={{ background: bubbleBg, border: `1px solid ${border}` }}>
+      className="flex items-center gap-3 mt-1 px-3 py-2.5 rounded-xl max-w-[260px] hover:opacity-80 transition-opacity"
+      style={{ background: own ? ownBg : otherBg, border: `1px solid ${own ? ownBorder : otherBorder}` }}>
       <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
         style={{ background: own ? "rgba(255,255,255,0.2)" : `${accent}22` }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2">
@@ -84,8 +143,8 @@ function MessageAttachment({ msg, isTecnico, own = false }: { msg: any; isTecnic
         </svg>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold truncate" style={{ color: own ? "white" : "#334155" }}>{name || "arquivo"}</p>
-        {size && <p className="text-[10px]" style={{ color: own ? "rgba(255,255,255,0.6)" : "#94a3b8" }}>{formatFileSize(size)}</p>}
+        <p className="text-xs font-semibold truncate" style={{ color: own ? "white" : "#334155" }}>{displayName}</p>
+        {size && <p className="text-[10px]" style={{ color: own ? "rgba(255,255,255,0.65)" : "#94a3b8" }}>{formatFileSize(size)}</p>}
       </div>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -134,31 +193,31 @@ function AttachmentPreview({ file, onRemove }: { file: File; onRemove: () => voi
 // ── WallpaperPicker ───────────────────────────────────────────────────────────
 function WallpaperPicker({ current, onChange, onClose }: { current: string; onChange: (id: string) => void; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
-      style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
       onClick={onClose}>
-      <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-sm p-5 shadow-2xl"
+      <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-sm shadow-2xl overflow-hidden"
         onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-slate-800">🎨 Pano de fundo do chat</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+        <div className="px-5 pt-5 pb-2 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-800">🎨 Pano de fundo</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="px-5 pb-6 grid grid-cols-4 gap-3">
           {WALLPAPERS.map(w => (
-            <button key={w.id} onClick={() => { onChange(w.id); onClose(); }}
+            <button key={w.id} onClick={() => onChange(w.id)}
               className="flex flex-col items-center gap-1.5">
-              <div className="w-14 h-14 rounded-2xl border-2 transition-all flex items-center justify-center"
+              <div className="w-14 h-14 rounded-2xl border-2 overflow-hidden transition-all flex items-center justify-center"
                 style={{
-                  background: w.preview,
-                  borderColor: current === w.id ? "#1e8c68" : "rgba(0,0,0,0.06)",
-                  boxShadow: current === w.id ? "0 0 0 3px rgba(30,140,104,0.2)" : "none"
+                  ...(w.style as React.CSSProperties),
+                  borderColor: current === w.id ? "#1e8c68" : "rgba(0,0,0,0.07)",
+                  boxShadow: current === w.id ? "0 0 0 3px rgba(30,140,104,0.2)" : "0 1px 4px rgba(0,0,0,0.08)"
                 }}>
                 {current === w.id && (
-                  <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "#1e8c68" }}>
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center shadow" style={{ background: "#1e8c68" }}>
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
                   </div>
                 )}
@@ -200,7 +259,7 @@ export default function PatientPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [recording, setRecording]               = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [wallpaper, setWallpaper]     = useState("default");
+  const [wallpaper, setWallpaper]     = useState("topo");
   const [showWallpaper, setShowWallpaper] = useState(false);
   const [isDragOver, setIsDragOver]   = useState(false);
 
@@ -246,9 +305,10 @@ export default function PatientPage() {
     if (activeTab === "assistencial" || activeTab === "tecnico") setTimeout(scrollToBottom, 100);
   }, [messages, activeTab]);
 
-  // Drag & drop
   function handleDragOver(e: React.DragEvent) { e.preventDefault(); setIsDragOver(true); }
-  function handleDragLeave() { setIsDragOver(false); }
+  function handleDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragOver(false);
+  }
   function handleDrop(e: React.DragEvent) {
     e.preventDefault(); setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
@@ -360,6 +420,7 @@ export default function PatientPage() {
   const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const isTecnico   = activeTab === "tecnico";
   const canSend     = (newMessage.trim() || !!pendingFile) && !sending;
+  const isDarkWallpaper = wallpaper === "dark";
 
   const filteredMessages = searchQuery.trim()
     ? messages.filter(m =>
@@ -369,7 +430,21 @@ export default function PatientPage() {
 
   const isOwnMessage = (msg: any) => msg.author_id === user.user_id;
   const currentWallpaper = WALLPAPERS.find(w => w.id === wallpaper) ?? WALLPAPERS[0];
-  const isDarkWallpaper  = wallpaper === "dark";
+
+  function getBubbleStyle(own: boolean): React.CSSProperties {
+    if (own) return { background: BRAND_GRADIENT, color: "white" };
+    if (isTecnico) return { background: "rgba(255,255,255,0.92)", border: "1px solid rgba(79,70,229,0.15)", color: "#1e293b" };
+    return {
+      background: isDarkWallpaper ? "rgba(255,255,255,0.1)" : "white",
+      border: isDarkWallpaper ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e8edf2",
+      color: isDarkWallpaper ? "#e2e8f0" : "#1e293b"
+    };
+  }
+
+  function getAttachmentOnlyStyle(own: boolean): React.CSSProperties {
+    if (own) return { background: BRAND_GRADIENT, borderRadius: "1rem", padding: "6px", display: "inline-block" };
+    return {};
+  }
 
   const tabs: { key: Tab; label: string; shortLabel: string; icon: React.ReactNode; count?: number }[] = [
     {
@@ -394,10 +469,8 @@ export default function PatientPage() {
   return (
     <div className="flex flex-col h-full bg-white" style={{ minHeight: 0 }}>
 
-      {/* ── MOBILE HEADER ───────────────────────────────────────────────────── */}
+      {/* ── MOBILE HEADER ─────────────────────────────────────────────────── */}
       <div className="md:hidden flex-shrink-0 sticky top-0 z-30 bg-white border-b border-slate-100">
-
-        {/* Linha nome paciente */}
         <div className="px-4 py-3 flex items-center gap-3"
           style={{ background: "rgba(247,251,249,0.98)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
           <button onClick={() => window.dispatchEvent(new CustomEvent("open-sidebar"))}
@@ -424,26 +497,20 @@ export default function PatientPage() {
             {user.name?.[0]?.toUpperCase()}
           </div>
         </div>
-
-        {/* Tabs mobile com ícone + label */}
         <div className="px-3 pb-2 pt-1 bg-white">
           <div className="bg-slate-100 p-1 rounded-2xl flex gap-1">
             {tabs.map(tab => {
               const active = activeTab === tab.key;
-              const accentColor = tab.key === "tecnico" ? "#4f46e5" : "#1e8c68";
+              const accent = tab.key === "tecnico" ? "#4f46e5" : "#1e8c68";
               return (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                   className="relative flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all duration-200 active:scale-95"
-                  style={{
-                    background: active ? "white" : "transparent",
-                    color: active ? accentColor : "#94a3b8",
-                    boxShadow: active ? "0 2px 6px rgba(0,0,0,0.06)" : "none"
-                  }}>
-                  <span style={{ color: active ? accentColor : "#94a3b8" }}>{tab.icon}</span>
-                  <span className="text-[10px] font-semibold">{tab.shortLabel}</span>
+                  style={{ background: active ? "white" : "transparent", boxShadow: active ? "0 2px 6px rgba(0,0,0,0.06)" : "none" }}>
+                  <span style={{ color: active ? accent : "#94a3b8" }}>{tab.icon}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? accent : "#94a3b8" }}>{tab.shortLabel}</span>
                   {tab.count !== undefined && tab.count > 0 && (
                     <span className="absolute top-1 right-1 w-3.5 h-3.5 text-[8px] font-bold rounded-full flex items-center justify-center"
-                      style={{ background: active ? accentColor : "#e2e8f0", color: active ? "white" : "#64748b" }}>
+                      style={{ background: active ? accent : "#e2e8f0", color: active ? "white" : "#64748b" }}>
                       {tab.count}
                     </span>
                   )}
@@ -454,7 +521,7 @@ export default function PatientPage() {
         </div>
       </div>
 
-      {/* ── DESKTOP HEADER ──────────────────────────────────────────────────── */}
+      {/* ── DESKTOP HEADER ────────────────────────────────────────────────── */}
       <div className="hidden md:block flex-shrink-0 bg-white border-b border-slate-100">
         <div className="px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -482,16 +549,16 @@ export default function PatientPage() {
         <div className="flex px-6 gap-0.5 border-t border-slate-100">
           {tabs.map(tab => {
             const active = activeTab === tab.key;
-            const accentColor = tab.key === "tecnico" ? "#4f46e5" : "#1e8c68";
+            const accent = tab.key === "tecnico" ? "#4f46e5" : "#1e8c68";
             return (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                 className="px-4 py-3 text-xs font-semibold transition-all border-b-2 flex items-center gap-1.5 whitespace-nowrap"
-                style={{ borderBottomColor: active ? accentColor : "transparent", color: active ? accentColor : "#94a3b8" }}>
-                <span style={{ color: active ? accentColor : "#94a3b8" }}>{tab.icon}</span>
+                style={{ borderBottomColor: active ? accent : "transparent", color: active ? accent : "#94a3b8" }}>
+                <span style={{ color: active ? accent : "#94a3b8" }}>{tab.icon}</span>
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
                   <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
-                    style={{ background: active ? accentColor : "#e2e8f0", color: active ? "white" : "#64748b" }}>
+                    style={{ background: active ? accent : "#e2e8f0", color: active ? "white" : "#64748b" }}>
                     {tab.count}
                   </span>
                 )}
@@ -501,7 +568,7 @@ export default function PatientPage() {
         </div>
       </div>
 
-      {/* ── CONTEÚDO ────────────────────────────────────────────────────────── */}
+      {/* ── CONTEÚDO ──────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-hidden">
 
         {/* CHAT */}
@@ -514,8 +581,7 @@ export default function PatientPage() {
               style={isTecnico
                 ? { background: "rgba(79,70,229,0.06)", borderBottom: "1px solid rgba(79,70,229,0.12)", color: "#4f46e5" }
                 : { background: "rgba(30,140,104,0.05)", borderBottom: "1px solid rgba(30,140,104,0.1)", color: "#1e8c68" }}>
-              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: isTecnico ? "#4f46e5" : "#1e8c68" }} />
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: isTecnico ? "#4f46e5" : "#1e8c68" }} />
               <span className="flex-1 font-medium">
                 {isTecnico ? "🔒 Invisível ao paciente · Discussão técnica" : "👥 Visível ao paciente · Comunicação da equipe"}
               </span>
@@ -559,18 +625,17 @@ export default function PatientPage() {
 
             {/* Drag overlay */}
             {isDragOver && (
-              <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none"
-                style={{ background: "rgba(30,140,104,0.08)", border: "2px dashed #1e8c68", borderRadius: "12px" }}>
-                <div className="text-center bg-white rounded-2xl px-8 py-6 shadow-lg">
+              <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+                <div className="bg-white rounded-2xl px-10 py-8 shadow-2xl text-center border-2 border-dashed border-emerald-400">
                   <div className="text-4xl mb-2">📎</div>
-                  <p className="text-sm font-semibold text-emerald-700">Solte para anexar</p>
+                  <p className="text-sm font-bold text-emerald-700">Solte para anexar</p>
                 </div>
               </div>
             )}
 
             {/* Mensagens */}
-            <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3"
-              style={{ background: currentWallpaper.bg }}>
+            <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-2"
+              style={currentWallpaper.style as React.CSSProperties}>
 
               {filteredMessages.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -589,36 +654,46 @@ export default function PatientPage() {
 
               {filteredMessages.map((msg: any) => {
                 const own = isOwnMessage(msg);
-                if (!msg.content?.trim() && !msg.attachment_url) return null;
+                const hasText = !!msg.content?.trim();
+                const hasAttachment = !!msg.attachment_url;
+                if (!hasText && !hasAttachment) return null;
+
                 return (
                   <div key={msg.id} className={`flex items-end gap-2 ${own ? "justify-end" : "justify-start"}`}>
                     {!own && (
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mb-4"
                         style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
                         {msg.author_name?.[0]?.toUpperCase() ?? "?"}
                       </div>
                     )}
-                    <div className={`flex flex-col gap-0.5 ${own ? "items-end max-w-[70%]" : "items-start max-w-[70%]"}`}>
-                      <div className={`flex items-center gap-1.5 ${own ? "flex-row-reverse" : ""}`}>
-                        <span className="text-[10px] font-semibold text-slate-400">{own ? "Você" : msg.author_name}</span>
-                        <span className="text-[9px] text-slate-300">{formatTime(msg.created_at)}</span>
+
+                    <div className={`flex flex-col gap-0.5 ${own ? "items-end max-w-[72%]" : "items-start max-w-[72%]"}`}>
+                      <div className={`flex items-center gap-1.5 px-1 ${own ? "flex-row-reverse" : ""}`}>
+                        <span className="text-[10px] font-semibold" style={{ color: isDarkWallpaper ? "#94a3b8" : "#64748b" }}>
+                          {own ? "Você" : msg.author_name}
+                        </span>
+                        <span className="text-[9px]" style={{ color: isDarkWallpaper ? "#475569" : "#cbd5e1" }}>
+                          {formatTime(msg.created_at)}
+                        </span>
                       </div>
-                      {/* Bubble própria: gradiente verde com texto branco */}
-                      <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full min-w-[2rem] ${
-                        own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"
-                      }`} style={
-                        own
-                          ? { background: BRAND_GRADIENT, color: "white" }
-                          : isTecnico
-                            ? { background: "rgba(255,255,255,0.95)", border: "1px solid rgba(79,70,229,0.15)", color: "#1e293b" }
-                            : { background: isDarkWallpaper ? "rgba(255,255,255,0.1)" : "white", border: isDarkWallpaper ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0", color: isDarkWallpaper ? "#e2e8f0" : "#1e293b" }
-                      }>
-                        {msg.content && <p className="break-words">{msg.content}</p>}
-                        <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />
-                      </div>
+
+                      {hasText ? (
+                        <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full ${
+                          own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"
+                        }`} style={getBubbleStyle(own)}>
+                          <p className="break-words">{msg.content}</p>
+                          {hasAttachment && <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />}
+                        </div>
+                      ) : (
+                        <div style={getAttachmentOnlyStyle(own)}
+                          className={own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"}>
+                          <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />
+                        </div>
+                      )}
                     </div>
+
                     {own && (
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mb-4"
                         style={{ background: isTecnico ? TECNICO_GRADIENT : BRAND_GRADIENT }}>
                         {msg.author_name?.[0]?.toUpperCase() ?? "?"}
                       </div>
@@ -789,7 +864,11 @@ export default function PatientPage() {
 
       {/* Wallpaper picker */}
       {showWallpaper && (
-        <WallpaperPicker current={wallpaper} onChange={setWallpaper} onClose={() => setShowWallpaper(false)} />
+        <WallpaperPicker 
+  current={wallpaper} 
+  onChange={handleWallpaperChange}
+  onClose={() => setShowWallpaper(false)} 
+/>
       )}
     </div>
   );

@@ -26,6 +26,7 @@ class UserOut(BaseModel):
     course: Optional[str] = None
     institution: Optional[str] = None
     created_at: datetime
+    wallpaper_preference: Optional[str] = "botanical"
 
     model_config = {"from_attributes": True}
 

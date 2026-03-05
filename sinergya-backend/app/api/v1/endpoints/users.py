@@ -83,3 +83,14 @@ def toggle_user_status(
     action = "activate_user" if target.is_active else "deactivate_user"
     log(db, current_user, action, "user", target.id, target.email)
     return target
+
+@router.patch("/me/preferences")
+def update_preferences(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if "wallpaper" in payload:
+        current_user.wallpaper_preference = payload["wallpaper"]
+        db.commit()
+    return {"ok": True}

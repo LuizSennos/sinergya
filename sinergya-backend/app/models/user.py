@@ -30,6 +30,7 @@ class User(Base):
     specialty = Column(String, nullable=True)
     council_number = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    wallpaper_preference = Column(String, default="botanical", nullable=True)
 
     messages = relationship('Message', back_populates='author', foreign_keys='Message.author_id')
     diary_entries = relationship('DiaryEntry', back_populates='author')

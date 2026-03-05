@@ -69,3 +69,10 @@ export function apiLogout() {
 export const apiAdminStats = () => request<any>("/admin/stats");
 export const apiAdminUsers = () => request<any[]>("/admin/users");
 export const apiAdminLogs = () => request<any[]>("/admin/audit-logs");
+
+export async function apiUpdatePreferences(prefs: { wallpaper?: string }) {
+  return request("/users/me/preferences", {
+    method: "PATCH",
+    body: JSON.stringify(prefs),
+  });
+}

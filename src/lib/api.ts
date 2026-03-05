@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
 function getToken() {
   if (typeof window === "undefined") return null;
@@ -11,7 +11,8 @@ function setCookie(name: string, value: string, days = 7) {
 function deleteCookie(name: string) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+
+async function request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -21,6 +22,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ...options.headers,
     },
   });
+
+  if (res.status === 401) {
+    ["token", "role", "name", "user_id", "lgpd_consent"].forEach(k => sessionStorage.removeItem(k));
+    deleteCookie("token");
+    window.location.href = "/login";
+    throw new Error("Sessão expirada. Faça login novamente.");
+  }
+
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: "Erro inesperado." }));
     throw new Error(error.detail || "Erro na requisição.");
@@ -69,8 +78,8 @@ export async function apiToggleUserStatus(userId: string, isActive: boolean) {
 }
 
 // ── Pacientes ─────────────────────────────────────────────────────────────────
-export async function apiGetPatients() { return request<any[]>("/patients/"); }  // profissional: seus pacientes vinculados
-export async function apiAdminGetPatients() { return request<any[]>("/patients/admin-list"); }  // admin: lista operacional
+export async function apiGetPatients() { return request<any[]>("/patients/"); }
+export async function apiAdminGetPatients() { return request<any[]>("/patients/admin-list"); }
 export async function apiGetPatient(id: string) { return request<any>(`/patients/${id}`); }
 export async function apiGetMyPatient() { return request<any>("/patients/me"); }
 export async function apiCreatePatient(data: any) { return request("/patients/", { method: "POST", body: JSON.stringify(data) }); }
@@ -96,6 +105,12 @@ export async function apiUploadFile(file: File, patientId: string, group: string
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: formData,
   });
+  if (res.status === 401) {
+    ["token", "role", "name", "user_id", "lgpd_consent"].forEach(k => sessionStorage.removeItem(k));
+    deleteCookie("token");
+    window.location.href = "/login";
+    throw new Error("Sessão expirada. Faça login novamente.");
+  }
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: "Erro no upload." }));
     throw new Error(error.detail || "Erro no upload.");
@@ -108,7 +123,7 @@ export async function apiSendMessageWithAttachment(
   content: string,
   attachment: {
     url: string;
-    storage_path: string;       // path permanente no bucket — essencial para renovar URL
+    storage_path: string;
     attachment_type: string;
     attachment_name: string;
     attachment_size: number;
@@ -122,7 +137,7 @@ export async function apiSendMessageWithAttachment(
       context,
       content:                 content || null,
       attachment_url:          attachment.url,
-      attachment_storage_path: attachment.storage_path,  // persiste o path permanente
+      attachment_storage_path: attachment.storage_path,
       attachment_type:         attachment.attachment_type,
       attachment_name:         attachment.attachment_name,
       attachment_size:         attachment.attachment_size,
@@ -153,4 +168,11 @@ export async function apiGetSignedUrl(storagePath: string, patientId: string) {
   return request<{ url: string }>(
     `/upload/signed-url?storage_path=${encodeURIComponent(storagePath)}&patient_id=${encodeURIComponent(patientId)}`
   );
+}
+
+export async function apiUpdatePreferences(prefs: { wallpaper?: string }) {
+  return request("/users/me/preferences", {
+    method: "PATCH",
+    body: JSON.stringify(prefs),
+  });
 }
