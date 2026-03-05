@@ -5,11 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import {
   apiGetPatient, apiGetMessages, apiSendMessage,
   apiGetDiary, apiGetTasks, apiMarkTaskDone, apiCreateTask,
-  apiUploadFile, apiSendMessageWithAttachment, apiUpdatePreferences
+  apiUploadFile, apiSendMessageWithAttachment, apiUpdatePreferences, apiMarkAsRead
 } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
-const BRAND_GRADIENT   = "linear-gradient(135deg, #166a50 0%, #1a5fa0 100%)";
+const BRAND_GRADIENT = "linear-gradient(135deg, #0d9e6e 0%, #1a7bc4 100%)";
 const TECNICO_GRADIENT = "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)";
 const EMOJIS = ["😊","😄","👍","❤️","🙏","💪","✅","⚠️","📋","💬","🔒","📝","🎯","💡","⏰","📅"];
 
@@ -272,15 +272,21 @@ export default function PatientPage() {
 
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
-  const loadTab = useCallback(async (tab: Tab) => {
-    if (!id) return;
-    try {
-      if (tab === "assistencial") setMessages(await apiGetMessages(id, "assistencial"));
-      else if (tab === "tecnico") setMessages(await apiGetMessages(id, "tecnico"));
-      else if (tab === "diario")  setDiary(await apiGetDiary(id));
-      else if (tab === "tarefas") setTasks(await apiGetTasks(id));
-    } catch (err) { console.error(err); }
-  }, [id]);
+const loadTab = useCallback(async (tab: Tab) => {
+  if (!id) return;
+  try {
+    if (tab === "assistencial") {
+      setMessages(await apiGetMessages(id, "assistencial"));
+      apiMarkAsRead(id, "assistencial").catch(() => {}); // ← adiciona
+    }
+    else if (tab === "tecnico") {
+      setMessages(await apiGetMessages(id, "tecnico"));
+      apiMarkAsRead(id, "tecnico").catch(() => {}); // ← adiciona
+    }
+    else if (tab === "diario")  setDiary(await apiGetDiary(id));
+    else if (tab === "tarefas") setTasks(await apiGetTasks(id));
+  } catch (err) { console.error(err); }
+}, [id]);
 
   useEffect(() => {
     if (!loading) {
@@ -446,7 +452,12 @@ export default function PatientPage() {
   const currentWallpaper = WALLPAPERS.find(w => w.id === wallpaper) ?? WALLPAPERS[0];
 
   function getBubbleStyle(own: boolean): React.CSSProperties {
-    if (own) return { background: BRAND_GRADIENT, color: "white" };
+ if (own) return { 
+  background: BRAND_GRADIENT, 
+  color: "#ffffff",
+  WebkitTextFillColor: "#ffffff",
+  textShadow: "none"
+};
     if (isTecnico) return { background: "rgba(255,255,255,0.92)", border: "1px solid rgba(79,70,229,0.15)", color: "#1e293b" };
     return {
       background: isDarkWallpaper ? "rgba(255,255,255,0.1)" : "white",
@@ -483,48 +494,76 @@ export default function PatientPage() {
   return (
     <div className="flex flex-col h-full bg-white" style={{ minHeight: 0 }}>
 
-      {/* ── MOBILE HEADER ─────────────────────────────────────────────────── */}
-      <div className="md:hidden flex-shrink-0 sticky top-0 z-30 bg-white border-b border-slate-100">
-        <div className="px-4 py-3 flex items-center gap-3"
-          style={{ background: "rgba(247,251,249,0.98)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
+     {/* ── MOBILE HEADER ─────────────────────────────────────────────────── */}
+      <div className="md:hidden flex-shrink-0 sticky top-0 z-30 border-b border-slate-100"
+        style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+        <div className="px-4 py-3 flex items-center gap-3">
           <button onClick={() => window.dispatchEvent(new CustomEvent("open-sidebar"))}
             className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 active:scale-95 transition"
             style={{ background: "rgba(30,140,104,0.08)" }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2.5">
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <line x1="3" y1="12" x2="21" y2="12"/>
-              <line x1="3" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
             </svg>
           </button>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0"
-              style={{ background: BRAND_GRADIENT }}>
-              {patient.name?.[0]?.toUpperCase()}
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            {/* Avatar com pulso */}
+            <div className="relative flex-shrink-0">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-[11px] shadow-sm"
+                style={{ background: BRAND_GRADIENT }}>
+                {patient.name?.[0]?.toUpperCase()}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white bg-emerald-400">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+              </span>
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-slate-900 truncate leading-tight">{patient.name}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-bold text-slate-900 truncate leading-tight">{patient.name}</p>
+                <span className="flex-shrink-0 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wide">Ativo</span>
+              </div>
               {patient.specialties && <p className="text-[10px] text-slate-400 truncate">{patient.specialties}</p>}
             </div>
           </div>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-            style={{ background: "rgba(30,140,104,0.12)", color: "#1e8c68" }}>
+          {/* Mini métricas */}
+          {tasks.length > 0 && (
+            <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg"
+              style={{ background: "rgba(30,140,104,0.07)" }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2.5">
+                <path d="M9 11l3 3L22 4"/>
+              </svg>
+              <span className="text-[10px] font-bold" style={{ color: "#1e8c68" }}>{doneTasks}/{totalTasks}</span>
+            </div>
+          )}
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm"
+            style={{ background: BRAND_GRADIENT, color: "white" }}>
             {user.name?.[0]?.toUpperCase()}
           </div>
         </div>
+        {/* Progress bar sutil */}
+        {totalTasks > 0 && (
+          <div className="h-0.5 w-full bg-slate-100">
+            <div className="h-full transition-all duration-700 rounded-full"
+              style={{ width: `${progressPct}%`, background: BRAND_GRADIENT }} />
+          </div>
+        )}
         <div className="px-3 pb-2 pt-1 bg-white">
           <div className="bg-slate-100 p-1 rounded-2xl flex gap-1">
             {tabs.map(tab => {
               const active = activeTab === tab.key;
               const accent = tab.key === "tecnico" ? "#4f46e5" : "#1e8c68";
+              const bgActive = tab.key === "tecnico" ? "rgba(79,70,229,0.08)" : "rgba(30,140,104,0.07)";
               return (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                   className="relative flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all duration-200 active:scale-95"
-                  style={{ background: active ? "white" : "transparent", boxShadow: active ? "0 2px 6px rgba(0,0,0,0.06)" : "none" }}>
+                  style={{
+                    background: active ? "white" : "transparent",
+                    boxShadow: active ? `0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px ${accent}22` : "none"
+                  }}>
                   <span style={{ color: active ? accent : "#94a3b8" }}>{tab.icon}</span>
                   <span className="text-[10px] font-semibold" style={{ color: active ? accent : "#94a3b8" }}>{tab.shortLabel}</span>
                   {tab.count !== undefined && tab.count > 0 && (
                     <span className="absolute top-1 right-1 w-3.5 h-3.5 text-[8px] font-bold rounded-full flex items-center justify-center"
-                      style={{ background: active ? accent : "#e2e8f0", color: active ? "white" : "#64748b" }}>
+                      style={{ background: accent, color: "white" }}>
                       {tab.count}
                     </span>
                   )}
@@ -535,44 +574,117 @@ export default function PatientPage() {
         </div>
       </div>
 
+   
       {/* ── DESKTOP HEADER ────────────────────────────────────────────────── */}
-      <div className="hidden md:block flex-shrink-0 bg-white border-b border-slate-100">
-        <div className="px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0"
-              style={{ background: BRAND_GRADIENT }}>
-              {patient.name?.[0]?.toUpperCase()}
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-lg font-bold text-slate-900 tracking-tight">{patient.name}</h1>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wide">Ativo</span>
+      <div className="hidden md:block flex-shrink-0 border-b border-slate-100"
+        style={{ background: "rgba(255,255,255,0.98)", backdropFilter: "blur(12px)" }}>
+        {/* Topo do header */}
+        <div className="px-8 py-4 flex items-center justify-between gap-6">
+          {/* Identidade do paciente */}
+          <div className="flex items-center gap-4 min-w-0">
+            {/* Avatar grande com pulso */}
+            <div className="relative flex-shrink-0">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-md"
+                style={{ background: BRAND_GRADIENT }}>
+                {patient.name?.[0]?.toUpperCase()}
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">{patient.specialties}</p>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-emerald-400 flex-shrink-0">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-60" />
+              </span>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">{patient.name}</h1>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider"
+                  style={{ background: "rgba(16,185,129,0.12)", color: "#059669" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                  Ativo
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5 truncate">{patient.specialties}</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-            style={{ background: "rgba(30,140,104,0.08)", color: "#1e8c68" }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            Dados protegidos (LGPD)
-          </span>
+
+          {/* Mini cards de métricas */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Card tarefas */}
+            {totalTasks > 0 && (
+              <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border"
+                style={{ background: "rgba(30,140,104,0.04)", borderColor: "rgba(30,140,104,0.15)" }}>
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(30,140,104,0.12)" }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2.5">
+                    <path d="M9 11l3 3L22 4"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 leading-none mb-0.5">Tarefas</p>
+                  <p className="text-xs font-bold leading-none" style={{ color: "#1e8c68" }}>{doneTasks}/{totalTasks}</p>
+                </div>
+                {/* Mini progresso */}
+                <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${progressPct}%`, background: BRAND_GRADIENT }} />
+                </div>
+              </div>
+            )}
+
+            {/* Card mensagens */}
+            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border"
+              style={{ background: "rgba(30,140,104,0.04)", borderColor: "rgba(30,140,104,0.15)" }}>
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(30,140,104,0.12)" }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e8c68" strokeWidth="2.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 leading-none mb-0.5">Mensagens</p>
+                <p className="text-xs font-bold leading-none" style={{ color: "#1e8c68" }}>{messages.length}</p>
+              </div>
+            </div>
+
+            {/* LGPD badge */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border"
+              style={{ background: "rgba(30,140,104,0.04)", borderColor: "rgba(30,140,104,0.15)", color: "#1e8c68" }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              LGPD
+            </span>
+          </div>
         </div>
-        <div className="flex px-6 gap-0.5 border-t border-slate-100">
+
+        {/* Barra de progresso sutil no topo */}
+        {totalTasks > 0 && (
+          <div className="mx-8 mb-0 h-px rounded-full overflow-hidden bg-slate-100">
+            <div className="h-full transition-all duration-700"
+              style={{ width: `${progressPct}%`, background: BRAND_GRADIENT }} />
+          </div>
+        )}
+
+        {/* Tabs com hover colorido */}
+        <div className="flex px-6 gap-0.5 mt-1">
           {tabs.map(tab => {
             const active = activeTab === tab.key;
             const accent = tab.key === "tecnico" ? "#4f46e5" : "#1e8c68";
+            const bgHover = tab.key === "tecnico" ? "rgba(79,70,229,0.06)" : "rgba(30,140,104,0.06)";
             return (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className="px-4 py-3 text-xs font-semibold transition-all border-b-2 flex items-center gap-1.5 whitespace-nowrap"
-                style={{ borderBottomColor: active ? accent : "transparent", color: active ? accent : "#94a3b8" }}>
-                <span style={{ color: active ? accent : "#94a3b8" }}>{tab.icon}</span>
+                className="group px-4 py-3 text-xs font-semibold transition-all duration-200 border-b-2 flex items-center gap-1.5 whitespace-nowrap rounded-t-lg"
+                style={{
+                  borderBottomColor: active ? accent : "transparent",
+                  color: active ? accent : "#94a3b8",
+                  background: active ? `${accent}08` : "transparent",
+                }}>
+                <span className="transition-colors duration-200" style={{ color: active ? accent : "#94a3b8" }}>
+                  {tab.icon}
+                </span>
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
-                  <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
-                    style={{ background: active ? accent : "#e2e8f0", color: active ? "white" : "#64748b" }}>
+                  <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center transition-all"
+                    style={{ background: accent, color: "white" }}>
                     {tab.count}
                   </span>
                 )}

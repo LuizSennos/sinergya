@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Text, ForeignKey, DateTime, Enum as SAEnum, Integer
+from sqlalchemy import Column, Text, ForeignKey, DateTime, Enum as SAEnum, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -34,6 +34,7 @@ class Message(Base):
     attachment_size   = Column(Integer, nullable=True)   # bytes
     attachment_mime         = Column(Text, nullable=True)
     attachment_storage_path = Column(Text, nullable=True)  # path permanente no bucket para renovar URL
+    is_read = Column(Boolean, default=False)  # ← adiciona
 
     created_at    = Column(DateTime, default=datetime.utcnow)
 

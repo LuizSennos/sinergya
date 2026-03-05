@@ -7,7 +7,7 @@ Endpoints de mensagens com suporte a anexos.
 import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from typing import Optional
 from supabase import create_client
 
@@ -25,7 +25,6 @@ BUCKET = os.environ.get("STORAGE_BUCKET", "sinergya-media")
 SIGNED_URL_EXPIRY = 3600
 
 def validate_uuid(value: str, field: str = "id") -> str:
-    """Garante que o valor é um UUID válido antes de bater no banco."""
     try:
         uuid_lib.UUID(str(value))
         return str(value)
@@ -41,8 +40,6 @@ class MessageCreate(BaseModel):
     patient_id:      str
     context:         MessageContext
     content:         Optional[str] = None
-
-    # Campos de anexo (todos opcionais, mas se um vier todos devem vir)
     attachment_url:  Optional[str] = None
     attachment_type: Optional[AttachmentType] = None
     attachment_name: Optional[str] = None
@@ -71,18 +68,13 @@ class MessageOut(BaseModel):
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
-def assert_linked(
-    db: Session,
-    current_user: User,
-    patient_id: str,
-):
+
+def assert_linked(db: Session, current_user: User, patient_id: str):
     patient_id = validate_uuid(patient_id, "patient_id")
-    
-    # Admin não acessa conteúdo clínico (LGPD)
+
     if current_user.role == UserRole.admin:
         raise HTTPException(status_code=403, detail="Administradores não acessam conteúdo clínico.")
-    
-    # Paciente/responsável acessa o próprio registro
+
     if current_user.role in [UserRole.paciente, UserRole.responsavel]:
         from app.models.patient import Patient
         patient = db.query(Patient).filter(
@@ -92,8 +84,7 @@ def assert_linked(
         if not patient:
             raise HTTPException(status_code=403, detail="Acesso negado.")
         return
-    
-    # Profissional precisa de vínculo
+
     linked = (
         db.query(GroupMember)
         .filter(
@@ -108,17 +99,11 @@ def assert_linked(
 
 
 def assert_can_read_tecnico(user: User):
-    """Grupo técnico é invisível ao paciente."""
     if user.role in PACIENTE_ROLES:
         raise HTTPException(status_code=403, detail="Acesso não permitido.")
 
 
 def refresh_signed_url(storage_path: str) -> Optional[str]:
-    """
-    As URLs pré-assinadas expiram em 1h.
-    Chama esta função ao listar mensagens para garantir URLs frescas.
-    storage_path é o caminho no bucket (ex: attachments/{patient_id}/{uuid}.jpg)
-    """
     try:
         url = os.environ["SUPABASE_URL"]
         key = os.environ["SUPABASE_SERVICE_KEY"]
@@ -133,9 +118,6 @@ def refresh_signed_url(storage_path: str) -> Optional[str]:
 
 
 def serialize_message(msg: Message) -> dict:
-    url = msg.attachment_url
-    # Se a URL parece expirada (não começa com http já é path), renova
-    # Em produção: armazenar storage_path separado e renovar sempre
     return {
         "id":              str(msg.id),
         "patient_id":      str(msg.patient_id),
@@ -143,7 +125,7 @@ def serialize_message(msg: Message) -> dict:
         "author_name":     msg.author.name if msg.author else None,
         "context":         msg.context.value,
         "content":         msg.content,
-        "attachment_url":  url,
+        "attachment_url":  msg.attachment_url,
         "attachment_type": msg.attachment_type.value if msg.attachment_type else None,
         "attachment_name": msg.attachment_name,
         "attachment_size": msg.attachment_size,
@@ -153,7 +135,8 @@ def serialize_message(msg: Message) -> dict:
     }
 
 
-# ── Endpoints ────────────────────────────────────────────────────────────────
+# ── Endpoints ─────────────────────────────────────────────────────────────────
+# IMPORTANTE: rotas estáticas SEMPRE antes das dinâmicas no FastAPI
 
 @router.post("/", response_model=MessageOut)
 def send_message(
@@ -161,14 +144,12 @@ def send_message(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-
-
-    # Normaliza content vazio para None
     if not payload.content or payload.content.strip() == "":
         payload.content = None
-    
+
     if not payload.content and not payload.attachment_url:
         raise HTTPException(status_code=400, detail="Mensagem deve ter texto ou anexo.")
+
     assert_linked(db, current_user, payload.patient_id)
 
     if payload.context == MessageContext.tecnico:
@@ -196,6 +177,27 @@ def send_message(
     return serialize_message(msg)
 
 
+# ── Rotas estáticas (sem parâmetros dinâmicos) ────────────────────────────────
+
+@router.get("/unread-counts")
+def unread_counts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retorna contagem de mensagens não lidas por paciente para o usuário atual."""
+    from sqlalchemy import func
+    rows = db.query(
+        Message.patient_id,
+        func.count(Message.id).label("count")
+    ).filter(
+        Message.author_id != current_user.id,
+        Message.is_read == False
+    ).group_by(Message.patient_id).all()
+    return {str(r.patient_id): r.count for r in rows}
+
+
+# ── Rotas dinâmicas (com parâmetros) ─────────────────────────────────────────
+
 @router.get("/{patient_id}/{context}")
 def list_messages(
     patient_id: str,
@@ -221,6 +223,24 @@ def list_messages(
     return [serialize_message(m) for m in messages]
 
 
+@router.patch("/{patient_id}/{context}/read")
+def mark_as_read(
+    patient_id: str,
+    context: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Marca todas as mensagens de outros autores como lidas."""
+    db.query(Message).filter(
+        Message.patient_id == patient_id,
+        Message.context == context,
+        Message.author_id != current_user.id,
+        Message.is_read == False
+    ).update({"is_read": True})
+    db.commit()
+    return {"ok": True}
+
+
 @router.get("/refresh-url/{patient_id}/{message_id}")
 def refresh_attachment_url(
     patient_id: str,
@@ -228,18 +248,13 @@ def refresh_attachment_url(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Renova a URL pré-assinada de um anexo quando estiver prestes a expirar.
-    O frontend deve chamar este endpoint antes de exibir arquivos antigos.
-    """
+    """Renova a URL pré-assinada de um anexo."""
     assert_linked(db, current_user, patient_id)
 
     msg = db.query(Message).filter(Message.id == message_id).first()
     if not msg or not msg.attachment_url:
         raise HTTPException(status_code=404, detail="Mensagem ou anexo não encontrado.")
 
-    # O attachment_url armazena o storage_path (não a signed URL)
-    # Em produção: separar storage_path de signed_url no model
     new_url = refresh_signed_url(msg.attachment_url)
     if not new_url:
         raise HTTPException(status_code=500, detail="Erro ao renovar URL.")

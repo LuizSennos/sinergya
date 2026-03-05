@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { apiGetUnreadCounts } from "@/lib/api";
 
 interface Patient {
   id: string;
@@ -37,6 +38,15 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
   const [notifTarefas, setNotifTarefas] = useState(false);
   const [tema, setTema] = useState<"claro" | "sistema">("claro");
   const [idioma, setIdioma] = useState("pt-BR");
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+ useEffect(() => {
+  apiGetUnreadCounts().then(setUnreadCounts).catch(() => {});
+  const interval = setInterval(() => {
+    apiGetUnreadCounts().then(setUnreadCounts).catch(() => {});
+  }, 15000); // atualiza a cada 15s
+  return () => clearInterval(interval);
+}, []);
 
   const filtered = patients.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -160,29 +170,41 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
             </div>
           )}
 
-          {filtered.map(p => {
-            const active = pathname === `/patient/${p.id}`;
-            return (
-              <button
-                key={p.id}
-                onClick={() => navigate(`/patient/${p.id}`)}
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
-                  active ? "text-white" : "text-slate-900 hover:bg-white"
-                }`}
-                style={active ? {
-                  background: "linear-gradient(135deg, #1e8c67de, #2a7fc4)",
-                  boxShadow: "0 6px 18px rgba(30,140,104,0.25)"
-                } : {}}
-              >
-                <div className="font-medium">{p.name}</div>
-                {p.specialties && (
-                  <div className={`text-xs mt-0.5 ${active ? "text-white/70" : "text-slate-500"}`}>
-                    {p.specialties}
-                  </div>
-                )}
-              </button>
-            );
-          })}
+      {filtered.map(p => {
+  const active = pathname === `/patient/${p.id}`;
+  const unread = unreadCounts[p.id] ?? 0;
+  return (
+    <button
+      key={p.id}
+      onClick={() => navigate(`/patient/${p.id}`)}
+      className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+        active ? "text-white" : "text-slate-900 hover:bg-white"
+      }`}
+      style={active ? {
+        background: "linear-gradient(135deg, #1e8c67de, #2a7fc4)",
+        boxShadow: "0 6px 18px rgba(30,140,104,0.25)"
+      } : {}}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="font-medium truncate">{p.name}</div>
+        {unread > 0 && (
+          <span className="flex-shrink-0 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+            style={{
+              background: active ? "rgba(255,255,255,0.3)" : "#1e8c68",
+              color: "white"
+            }}>
+            {unread > 99 ? "99+" : unread}
+          </span>
+        )}
+      </div>
+      {p.specialties && (
+        <div className={`text-xs mt-0.5 ${active ? "text-white/70" : "text-slate-500"}`}>
+          {p.specialties}
+        </div>
+      )}
+    </button>
+  );
+})}
         </nav>
 
         {/* Footer */}

@@ -176,3 +176,11 @@ export async function apiUpdatePreferences(prefs: { wallpaper?: string }) {
     body: JSON.stringify(prefs),
   });
 }
+
+export async function apiGetUnreadCounts() {
+  return request<Record<string, number>>("/messages/unread-counts");
+}
+
+export async function apiMarkAsRead(patientId: string, context: "assistencial" | "tecnico") {
+  return request(`/messages/${patientId}/${context}/read`, { method: "PATCH" });
+}
