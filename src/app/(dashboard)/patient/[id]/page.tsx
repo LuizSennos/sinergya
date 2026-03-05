@@ -913,6 +913,8 @@ function handleLongPressEnd() {
     </div>
   );
 })}
+              <div ref={messagesEndRef} />
+            </div>
 
             {/* Emoji picker */}
             {showEmoji && (
