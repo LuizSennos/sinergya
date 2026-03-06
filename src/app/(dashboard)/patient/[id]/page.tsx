@@ -110,10 +110,15 @@ function MessageAttachment({ msg, isTecnico, own = false }: { msg: any; isTecnic
   const otherBorder = isTecnico ? "rgba(79,70,229,0.15)" : "rgba(30,140,104,0.15)";
   const accent    = own ? "white" : isTecnico ? "#4f46e5" : "#1e8c68";
 
-  if (type === "audio") {
-    return (
-      <div className="mt-1 rounded-xl px-3 py-2.5 max-w-[260px]"
-        style={{ background: own ? ownBg : otherBg, border: `1px solid ${own ? ownBorder : otherBorder}` }}>
+ if (type === "audio") {
+  return (
+    <div className="mt-1 rounded-xl px-3 py-2.5"
+      style={{ 
+        background: own ? ownBg : otherBg, 
+        border: `1px solid ${own ? ownBorder : otherBorder}`,
+        maxWidth: "280px",   // ← adiciona isso
+        width: "100%"
+      }}>
         <div className="flex items-center gap-2 mb-2">
           <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: own ? "rgba(255,255,255,0.25)" : `${accent}22` }}>
@@ -126,7 +131,10 @@ function MessageAttachment({ msg, isTecnico, own = false }: { msg: any; isTecnic
           </span>
         </div>
         <audio controls src={msg.attachment_url} className="w-full h-8"
-          style={{ filter: own ? "invert(1) brightness(1.5)" : "none" }} />
+  style={{ 
+    filter: own ? "invert(1) brightness(1.5)" : "none",
+    maxWidth: "240px"   // ← adiciona isso
+  }} />
       </div>
     );
   }
@@ -889,10 +897,10 @@ function handleLongPressEnd() {
               </div>
             </div>
           ) : hasText ? (
-            <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full ${
-              own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"
-            }`} style={getBubbleStyle(own)}>
-              <p className="break-words">{msg.content}</p>
+           <div className={`px-3.5 py-2.5 text-sm leading-relaxed shadow-sm max-w-full overflow-hidden ${
+  own ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm"
+}`} style={getBubbleStyle(own)}>
+              <p style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>{msg.content}</p>
               {hasAttachment && <MessageAttachment msg={msg} isTecnico={isTecnico} own={own} />}
             </div>
           ) : (
