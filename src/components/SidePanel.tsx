@@ -43,7 +43,7 @@ export default function Sidebar({ onNavigate, patients, patientsLoading }: Sideb
 useEffect(() => {
   const fetch = () => apiGetUnreadCounts().then(setUnreadCounts).catch(() => {});
   fetch();
-  const interval = setInterval(fetch, 15000);
+  const interval = setInterval(fetch, 60000);
   window.addEventListener("refresh-unread", fetch);
   return () => {
     clearInterval(interval);
