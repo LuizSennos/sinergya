@@ -11,7 +11,6 @@ from pydantic import BaseModel as PydanticBase
 from typing import Optional
 from supabase import create_client
 
-
 import uuid as uuid_lib
 from app.db.session import get_db
 from app.core.security import get_current_user, require_roles
@@ -37,7 +36,7 @@ PROFISSIONAL_ROLES = {UserRole.profissional, UserRole.academico, UserRole.superv
 
 # ── Schemas ──────────────────────────────────────────────────────────────────
 
-class MessageCreate(BaseModel):
+class MessageCreate(PydanticBase):
     patient_id:      str
     context:         MessageContext
     content:         Optional[str] = None
@@ -49,7 +48,7 @@ class MessageCreate(BaseModel):
     attachment_storage_path: Optional[str] = None
 
 
-class MessageOut(BaseModel):
+class MessageOut(PydanticBase):
     id:              str
     patient_id:      str
     author_id:       str
@@ -66,6 +65,10 @@ class MessageOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MessageEdit(PydanticBase):
+    content: str
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -117,9 +120,9 @@ def refresh_signed_url(storage_path: str) -> Optional[str]:
     except Exception:
         return None
 
+
 def serialize_message(msg: Message) -> dict:
     url = msg.attachment_url
-    # Renova URL se tiver storage_path salvo
     if msg.attachment_storage_path:
         refreshed = refresh_signed_url(msg.attachment_storage_path)
         if refreshed:
@@ -131,7 +134,7 @@ def serialize_message(msg: Message) -> dict:
         "author_name":     msg.author.name if msg.author else None,
         "context":         msg.context.value,
         "content":         msg.content,
-        "attachment_url":  url,  # ← aqui, não msg.attachment_url
+        "attachment_url":  url,
         "attachment_type": msg.attachment_type.value if msg.attachment_type else None,
         "attachment_name": msg.attachment_name,
         "attachment_size": msg.attachment_size,
@@ -139,8 +142,10 @@ def serialize_message(msg: Message) -> dict:
         "attachment_storage_path": getattr(msg, "attachment_storage_path", None),
         "created_at":              msg.created_at.isoformat(),
     }
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────────
-# IMPORTANTE: rotas estáticas SEMPRE antes das dinâmicas no FastAPI
+# REGRA: rotas estáticas e específicas SEMPRE antes das dinâmicas
 
 @router.post("/", response_model=MessageOut)
 def send_message(
@@ -181,14 +186,14 @@ def send_message(
     return serialize_message(msg)
 
 
-# ── Rotas estáticas (sem parâmetros dinâmicos) ────────────────────────────────
+# ── 1. Rotas totalmente estáticas ─────────────────────────────────────────────
 
 @router.get("/unread-counts")
 def unread_counts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna contagem de mensagens não lidas por paciente para o usuário atual."""
+    """Retorna contagem de mensagens não lidas por paciente."""
     from sqlalchemy import func
     rows = db.query(
         Message.patient_id,
@@ -200,7 +205,46 @@ def unread_counts(
     return {str(r.patient_id): r.count for r in rows}
 
 
-# ── Rotas dinâmicas (com parâmetros) ─────────────────────────────────────────
+# ── 2. Rotas com 1 parâmetro + sufixo estático ───────────────────────────────
+
+@router.patch("/{message_id}/edit")
+def edit_message(
+    message_id: str,
+    payload: MessageEdit,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Edita o conteúdo de uma mensagem."""
+    message_id = validate_uuid(message_id, "message_id")
+    msg = db.query(Message).filter(Message.id == message_id).first()
+    if not msg:
+        raise HTTPException(status_code=404, detail="Mensagem não encontrada.")
+    assert_linked(db, current_user, str(msg.patient_id))
+    if not payload.content.strip():
+        raise HTTPException(status_code=400, detail="Conteúdo não pode ser vazio.")
+    msg.content = payload.content.strip()
+    db.commit()
+    return serialize_message(msg)
+
+
+@router.delete("/{message_id}/delete")
+def delete_message(
+    message_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Deleta uma mensagem."""
+    message_id = validate_uuid(message_id, "message_id")
+    msg = db.query(Message).filter(Message.id == message_id).first()
+    if not msg:
+        raise HTTPException(status_code=404, detail="Mensagem não encontrada.")
+    assert_linked(db, current_user, str(msg.patient_id))
+    db.delete(msg)
+    db.commit()
+    return {"ok": True}
+
+
+# ── 3. Rotas com 2 parâmetros ────────────────────────────────────────────────
 
 @router.get("/{patient_id}/{context}")
 def list_messages(
@@ -241,44 +285,6 @@ def mark_as_read(
         Message.author_id != current_user.id,
         Message.is_read == False
     ).update({"is_read": True})
-    db.commit()
-    return {"ok": True}
-
-
-class MessageEdit(PydanticBase):
-    content: str
-
-@router.patch("/{message_id}/edit")
-def edit_message(
-    message_id: str,
-    payload: MessageEdit,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    message_id = validate_uuid(message_id, "message_id")
-    msg = db.query(Message).filter(Message.id == message_id).first()
-    if not msg:
-        raise HTTPException(status_code=404, detail="Mensagem não encontrada.")
-    assert_linked(db, current_user, str(msg.patient_id))
-    if not payload.content.strip():
-        raise HTTPException(status_code=400, detail="Conteúdo não pode ser vazio.")
-    msg.content = payload.content.strip()
-    db.commit()
-    return serialize_message(msg)
-
-
-@router.delete("/{message_id}")
-def delete_message(
-    message_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    message_id = validate_uuid(message_id, "message_id")
-    msg = db.query(Message).filter(Message.id == message_id).first()
-    if not msg:
-        raise HTTPException(status_code=404, detail="Mensagem não encontrada.")
-    assert_linked(db, current_user, str(msg.patient_id))
-    db.delete(msg)
     db.commit()
     return {"ok": True}
 

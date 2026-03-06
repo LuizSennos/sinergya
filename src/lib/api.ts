@@ -194,5 +194,5 @@ export async function apiEditMessage(messageId: string, content: string) {
 
 
 export async function apiDeleteMessage(messageId: string) {
-  return request(`/messages/${messageId}`, { method: "DELETE" });
+  return request(`/messages/${messageId}/delete`, { method: "DELETE" });
 }
