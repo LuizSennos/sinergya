@@ -196,3 +196,10 @@ export async function apiEditMessage(messageId: string, content: string) {
 export async function apiDeleteMessage(messageId: string) {
   return request(`/messages/${messageId}/delete`, { method: "DELETE" });
 }
+export async function apiUpdateProfile(name: string) {
+  return request("/users/me/profile", { method: "PATCH", body: JSON.stringify({ name }) });
+}
+
+export async function apiUpdatePassword(current_password: string, new_password: string) {
+  return request("/users/me/password", { method: "PATCH", body: JSON.stringify({ current_password, new_password }) });
+}
